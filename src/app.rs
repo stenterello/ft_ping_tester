@@ -1,6 +1,5 @@
 use crate::tui;
 use std::io;
-
 use ratatui::{
     buffer::Buffer,
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
@@ -16,10 +15,11 @@ use ratatui::{
 };
 
 use color_eyre::{Result, eyre::{bail, WrapErr}};
+use crate::stages;
 
 #[derive(Debug, Default)]
 pub struct App {
-    counter: u8,
+    welcome_widget: stages::welcome::WelcomeWidget,
     exit: bool,
 }
 
@@ -33,7 +33,7 @@ impl App {
     }
 
     fn  render(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.size());
+        frame.render_widget(&self.welcome_widget, frame.size());
     }
 
     fn  handle_events(&mut self) -> Result<()> {
@@ -50,8 +50,6 @@ impl App {
     fn  handle_key_events(&mut self, key_event: KeyEvent) -> Result<()> {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
-            KeyCode::Left => self.decrement_counter()?,
-            KeyCode::Right => self.increment_counter()?,
             _ => {}
         }
         Ok(())
@@ -59,19 +57,6 @@ impl App {
 
     fn  exit(&mut self) {
         self.exit = true;
-    }
-
-    fn  decrement_counter(&mut self) -> Result<()> {
-        self.counter -= 1;
-        Ok(())
-    }
-
-    fn  increment_counter(&mut self) -> Result<()> {
-        self.counter += 1;
-        if self.counter > 10 {
-            bail!("counter overflow");
-        }
-        Ok(())
     }
 }
 
@@ -93,15 +78,5 @@ impl Widget for &App {
                    .position(Position::Bottom)
             )
             .border_set(border::THICK);
-
-        let counter_text = Text::from(vec![Line::from(vec![
-            "Value: ".into(),
-            self.counter.to_string().yellow(),
-        ])]);
-
-        Paragraph::new(counter_text)
-            .centered()
-            .block(block)
-            .render(area, buf);
     }
 }

@@ -1,6 +1,7 @@
 mod tui;
 mod app;
 mod errors;
+mod stages;
 
 use crate::app::App;
 
