@@ -11,9 +11,11 @@ use ratatui::{
 };
 
 fn main() -> std::io::Result<()> {
-   tui::init()?;
+   let mut terminal = tui::init()?;
 
-   let app = App::default();
+   let mut app = App::default();
+
+   app.run(&mut terminal)?;
 
    tui::restore()?;
    Ok(())
