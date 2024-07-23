@@ -46,9 +46,9 @@ impl Widget for &App {
             " Decrement ".into(),
             "<Left>".blue().bold(),
             " Increment ".into(),
-            "<Right>".blue().into(),
+            "<Right>".blue().bold(),
             " Quit ".into(),
-            "<Q> ".blue().into(),
+            "<Q> ".blue().bold(),
         ]));
         let block = Block::bordered()
             .title(title.alignment(Alignment::Center))
@@ -59,7 +59,7 @@ impl Widget for &App {
             .border_set(border::THICK);
 
         let counter_text = Text::from(vec![Line::from(vec![
-            " Value: ".into(),
+            "Value: ".into(),
             self.counter.to_string().yellow(),
         ])]);
 

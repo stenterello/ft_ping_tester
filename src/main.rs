@@ -32,7 +32,7 @@ mod tests {
         app.render(buf.area, &mut buf);
 
         let mut expected = Buffer::with_lines(vec![
-            "┏━━━━━━━━━━━━━━━ ft_ping tester ━━━━━━━━━━━━━━━━━┓",
+            "┏━━━━━━━━━━━━━━━━ ft_ping tester ━━━━━━━━━━━━━━━━┓",
             "┃                    Value: 0                    ┃",
             "┃                                                ┃",
             "┗━ Decrement <Left> Increment <Right> Quit <Q> ━━┛",
@@ -40,7 +40,7 @@ mod tests {
         let title_style = Style::new().bold();
         let counter_style = Style::new().yellow();
         let key_style = Style::new().blue().bold();
-        expected.set_style(Rect::new(17, 0, 14, 1), title_style);
+        expected.set_style(Rect::new(17, 0, 16, 1), title_style);
         expected.set_style(Rect::new(28, 1, 1, 1), counter_style);
         expected.set_style(Rect::new(13, 3, 6, 1), key_style);
         expected.set_style(Rect::new(30, 3, 7, 1), key_style);
