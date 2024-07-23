@@ -1,5 +1,6 @@
 mod tui;
 mod app;
+mod errors;
 
 use crate::app::App;
 
@@ -10,15 +11,22 @@ use ratatui::{
     buffer::Buffer
 };
 
-fn main() -> std::io::Result<()> {
-   let mut terminal = tui::init()?;
+use color_eyre::{
+    eyre::{bail, WrapErr},
+    Result,
+};
 
-   let mut app = App::default();
+fn main() -> Result<()> {
+    errors::install_hooks();
 
-   app.run(&mut terminal)?;
-
-   tui::restore()?;
-   Ok(())
+    let mut terminal = tui::init()?;
+    let mut app = App::default();
+    
+    app.run(&mut terminal)?;
+    
+    tui::restore()?;
+    
+    Ok(())
 }
 
 #[cfg(test)]
