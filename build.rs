@@ -11,15 +11,6 @@ fn  main() {
 
     p!("cargo:rerun-if-changed=NULL");
 
-    if !Path::new("../ft_ping").exists() {
-        p!("You have to put ft_ping_tester dir in same path of ft_ping project. Quitting");
-        std::process::exit(1);
-    }
-
-    if Path::new("inetutils").exists() {
-        return;
-    }
-
     if !Path::new("inetutils-2.0.tar.xz").exists() {
         p!("Downloading inetutils-2.0...");
 
