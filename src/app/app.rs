@@ -1,4 +1,5 @@
 use crate::tui::Tui;
+use crate::utils::config_extractor::ConfigExtractor;
 use crate::utils::test_config_extractor::TestConfigExtractor;
 use crate::widgets::error_handling::ErrorHandling;
 use crate::widgets::welcome_widget::WelcomeWidget;
@@ -7,6 +8,8 @@ use ratatui::{
     Frame,
 };
 use std::{io::Result, time::Duration};
+
+const CONF_FILE: &str = "./conf.toml";
 
 #[derive(Debug, Default)]
 pub enum State {
@@ -26,7 +29,8 @@ pub struct App {
 
 impl App {
     pub fn new() -> Self {
-        let tests = TestConfigExtractor::decode("./tests.json".into());
+        let config = ConfigExtractor::decode(CONF_FILE.into());
+        let tests = TestConfigExtractor::decode(config.test_conf_path.into());
         App {
             welcome_widget: WelcomeWidget::new(),
             error_handling_widget: ErrorHandling::new(tests["error_handling"].clone()),

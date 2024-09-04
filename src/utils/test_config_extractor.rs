@@ -1,4 +1,4 @@
-use serde_json::{Value};
+use serde_json::Value;
 use std::fs;
 
 #[derive(Debug, Default)]

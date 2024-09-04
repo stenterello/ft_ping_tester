@@ -14,7 +14,7 @@ pub struct RecompilingNotice;
 
 impl Widget for &RecompilingNotice {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Title::from(" Infos ".bold().yellow());
+        let title = Title::from(" Recompiling... ".bold().yellow());
         let block = Block::bordered()
             .style(Style::default().fg(Color::Yellow))
             .title(title)
