@@ -2,7 +2,7 @@ use crate::utils::subprocess::SubProcess;
 use std::cell::RefCell;
 use std::sync::mpsc::Receiver;
 use std::sync::{mpsc, Arc, Mutex};
-use std::thread;
+use std::thread::{self, JoinHandle};
 
 #[derive(Debug)]
 pub struct Thread {
@@ -10,6 +10,7 @@ pub struct Thread {
     rx: Receiver<String>,
     output: RefCell<Vec<String>>,
     name: String,
+    handle: Option<JoinHandle<()>>,
 }
 
 impl Thread {
@@ -20,6 +21,7 @@ impl Thread {
             rx,
             output: RefCell::new(Vec::default()),
             name: path,
+            handle: None,
         }
     }
 
@@ -32,7 +34,7 @@ impl Thread {
 
         let thread = thread::Builder::new().name(self.name.clone());
 
-        thread.spawn(handle).unwrap();
+        self.handle = Some(thread.spawn(handle).unwrap());
     }
 
     pub fn get_output(&self) -> Vec<String> {
@@ -41,5 +43,12 @@ impl Thread {
             _ => {}
         };
         self.output.borrow().clone()
+    }
+
+    pub fn is_running(&self) -> bool {
+        match &self.handle {
+            Some(t) => !t.is_finished(),
+            None => false,
+        }
     }
 }

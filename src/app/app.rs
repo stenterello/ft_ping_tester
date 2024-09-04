@@ -32,7 +32,7 @@ impl App {
         let config = ConfigExtractor::decode(CONF_FILE.into());
         let tests = TestConfigExtractor::decode(config.test_conf_path.into());
         App {
-            welcome_widget: WelcomeWidget::new(),
+            welcome_widget: WelcomeWidget::new(config.ft_ping_dir.into()),
             error_handling_widget: ErrorHandling::new(tests["error_handling"].clone()),
             state: State::default(),
             about_to_quit: false,

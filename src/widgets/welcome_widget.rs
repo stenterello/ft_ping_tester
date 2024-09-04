@@ -13,7 +13,7 @@ use ratatui::{
 };
 use recompiling_notice::RecompilingNotice;
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct WelcomeWidget {
     intro_widget: IntroWidget,
     select_test_widget: ListWidget,
@@ -23,7 +23,7 @@ pub struct WelcomeWidget {
 }
 
 impl WelcomeWidget {
-    pub fn new() -> Self {
+    pub fn new(path: String) -> Self {
         WelcomeWidget {
             select_test_widget: ListWidget::new(
                 " Choose test: ".into(),
@@ -35,7 +35,10 @@ impl WelcomeWidget {
                     "Recompile ft_ping".into(),
                 ],
             ),
-            ..Default::default()
+            recompiling_notice: RecompilingNotice::new(path),
+            recompiling: bool::default(),
+            intro_widget: IntroWidget::default(),
+            info_widget: InfoWidget::default(),
         }
     }
 
@@ -84,7 +87,7 @@ impl WelcomeWidget {
 
     pub fn recompile(&mut self) {
         self.recompiling = true;
-        // recompile command
+        self.recompiling_notice.start();
     }
 
     pub fn select_state(&mut self) -> State {
