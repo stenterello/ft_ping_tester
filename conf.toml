@@ -1,0 +1,8 @@
+[ft_ping]
+bin_dir = "./ft_ping/"
+
+[ping]
+bin_dir = "./inetutils-2.0/ping/"
+
+[tests]
+conf_file = "./tests.json"

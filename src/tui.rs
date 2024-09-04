@@ -1,29 +1,41 @@
-use std::io::{Result, stdout, Stdout};
-
+use std::io::{Result, Stdout, stdout};
 use ratatui::{
-    backend::CrosstermBackend,
     crossterm::{
-        event::{self, KeyCode, KeyEventKind},
-        terminal::{enable_raw_mode, disable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+        terminal::{
+            enable_raw_mode,
+            disable_raw_mode,
+            EnterAlternateScreen,
+            LeaveAlternateScreen,
+        },
         ExecutableCommand,
     },
-    style::Stylize,
-    widgets::Paragraph,
+    backend::CrosstermBackend,
     Terminal,
 };
 
-pub type Tui = Terminal<CrosstermBackend<Stdout>>;
-
-pub fn  init() -> Result<Tui> {
-    stdout().execute(EnterAlternateScreen)?;
-    enable_raw_mode()?;
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-    terminal.clear()?;
-    Ok(terminal)
+pub struct Tui {
+    pub terminal: Terminal<CrosstermBackend<Stdout>>,
 }
 
-pub fn  restore() -> Result<()> {
-    stdout().execute(LeaveAlternateScreen)?;
-    disable_raw_mode()?;
-    Ok(())
+impl Tui {
+    pub fn  new() -> Result<Tui> {
+        let tui = Tui {
+            terminal: Terminal::new(CrosstermBackend::new(stdout()))?,
+        };
+
+        Ok(tui)
+    }
+
+    pub fn  enter(&mut self) -> Result<()> {
+        enable_raw_mode()?;
+        stdout().execute(EnterAlternateScreen)?;
+        self.terminal.clear()?;
+        Ok(())
+    }
+
+    pub fn  restore(&mut self) -> Result<()> {
+        stdout().execute(LeaveAlternateScreen)?;
+        disable_raw_mode()?;
+        Ok(())
+    }
 }
