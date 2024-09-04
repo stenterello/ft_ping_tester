@@ -1,5 +1,6 @@
 use crate::utils::subprocess::SubProcess;
 use std::cell::RefCell;
+use std::process::ExitStatus;
 use std::sync::mpsc::Receiver;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, JoinHandle};
@@ -50,5 +51,11 @@ impl Thread {
             Some(t) => !t.is_finished(),
             None => false,
         }
+    }
+
+    pub fn get_exit_status(&self) -> i32 {
+        let command = self.command.lock().unwrap();
+        let code = command.exit_status.borrow().code().unwrap();
+        code
     }
 }

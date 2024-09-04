@@ -1,17 +1,23 @@
+use std::cell::RefCell;
 use std::io::{BufRead, BufReader};
 use std::panic;
-use std::process::{self, ChildStderr, ChildStdout, Command, Stdio};
+use std::process::{self, ChildStderr, ChildStdout, Command, ExitStatus, Stdio};
 use std::sync::mpsc::Sender;
 
 #[derive(Debug)]
 pub struct SubProcess {
     path: String,
     tx: Sender<String>,
+    pub exit_status: RefCell<ExitStatus>,
 }
 
 impl SubProcess {
     pub fn new(path: String, tx: Sender<String>) -> Self {
-        SubProcess { path, tx }
+        SubProcess {
+            path,
+            tx,
+            exit_status: RefCell::new(ExitStatus::default()),
+        }
     }
 
     pub fn start(&self, args: Vec<String>) -> () {
@@ -40,6 +46,14 @@ impl SubProcess {
         for line in error_reader.lines() {
             let line = line.expect("Failed to read line");
             self.tx.send(line).expect("Failed to send line");
+        }
+
+        let mut stat = self.exit_status.borrow_mut();
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                *stat = status;
+            }
+            _ => {}
         }
     }
 }

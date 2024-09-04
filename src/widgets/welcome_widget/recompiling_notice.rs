@@ -33,6 +33,7 @@ impl Widget for &RecompilingNotice {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let recompiling_title = Title::from(" Recompiling... ".bold().yellow());
         let done_title = Title::from(" Done! ".bold().green());
+        let error_title = Title::from(" Error! ".bold().red());
         let mut block = Block::bordered()
             .style(Style::default().fg(Color::Yellow))
             .title_alignment(Alignment::Center)
@@ -40,8 +41,10 @@ impl Widget for &RecompilingNotice {
 
         if self.thread.is_running() {
             block = block.title(recompiling_title);
-        } else {
+        } else if self.thread.get_exit_status() == 0 {
             block = block.title(done_title);
+        } else {
+            block = block.title(error_title);
         }
 
         let text = self.thread.get_output().join("\n");
