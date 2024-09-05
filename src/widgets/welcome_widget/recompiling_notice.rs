@@ -1,10 +1,11 @@
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Rect},
+    layout::{Alignment, Margin, Rect},
     style::{Color, Style, Stylize},
     widgets::{
         block::{BorderType, Title},
-        Block, Paragraph, Widget, Wrap,
+        Block, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget,
+        Wrap,
     },
 };
 
@@ -14,6 +15,7 @@ use crate::utils::thread::Thread;
 pub struct RecompilingNotice {
     thread: Thread,
     location: String,
+    vertical_scroll: usize,
 }
 
 impl RecompilingNotice {
@@ -21,6 +23,7 @@ impl RecompilingNotice {
         RecompilingNotice {
             thread: Thread::new("make".into()),
             location: path,
+            vertical_scroll: usize::default(),
         }
     }
 
@@ -49,10 +52,32 @@ impl Widget for &RecompilingNotice {
 
         let text = self.thread.get_output().join("\n");
 
-        Paragraph::new(text)
+        let mut p = self.vertical_scroll;
+
+        if text.clone().lines().count() > area.height as usize {
+            p += text.clone().lines().count() - area.height as usize;
+        }
+
+        Paragraph::new(text.clone())
             .block(block.clone())
             .wrap(Wrap { trim: true })
+            .scroll((p as u16, 0))
             .style(Style::default().fg(Color::White))
             .render(area, buf);
+
+        let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+            .begin_symbol(Some("^"))
+            .end_symbol(Some("v"));
+
+        let mut scrollbar_state = ScrollbarState::new(text.lines().count()).position(p);
+
+        scrollbar.render(
+            area.inner(Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
+            buf,
+            &mut scrollbar_state,
+        );
     }
 }
