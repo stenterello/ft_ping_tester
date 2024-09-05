@@ -55,9 +55,9 @@ impl Thread {
 
     pub fn get_exit_status(&self) -> i32 {
         let command = self.command.lock().unwrap();
-        let code = command.exit_status.borrow().code().unwrap();
+        let code = command.exit_code.borrow();
         println!("Returning: {}", code);
-        code
+        *code
     }
 
     pub fn clean_output(&mut self) {

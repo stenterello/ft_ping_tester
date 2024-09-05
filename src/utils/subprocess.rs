@@ -2,14 +2,15 @@ extern crate libc;
 
 use std::cell::RefCell;
 use std::io::{BufRead, BufReader, Result};
-use std::process::{Child, ChildStderr, ChildStdout, Command, ExitStatus, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::Sender;
+use std::thread;
 
 #[derive(Debug)]
 pub struct SubProcess {
     path: String,
     tx: Sender<String>,
-    pub exit_status: RefCell<ExitStatus>,
+    pub exit_code: RefCell<i32>,
 }
 
 impl SubProcess {
@@ -17,7 +18,7 @@ impl SubProcess {
         SubProcess {
             path,
             tx,
-            exit_status: RefCell::new(ExitStatus::default()),
+            exit_code: RefCell::new(1),
         }
     }
 
@@ -38,26 +39,28 @@ impl SubProcess {
         };
 
         let mut child = unwrapped_child.unwrap();
+        let reader = BufReader::new(child.stdout.take().unwrap());
+        let error_reader = BufReader::new(child.stderr.take().unwrap());
 
-        let stdout: ChildStdout = child.stdout.take().unwrap();
-        let reader = BufReader::new(stdout);
-        let stderr: ChildStderr = child.stderr.take().unwrap();
-        let error_reader = BufReader::new(stderr);
-
-        for line in reader.lines() {
-            let line = line.expect("Failed to read line");
-            self.tx.send(line).expect("Failed to send line");
-        }
-        for line in error_reader.lines() {
-            let line = line.expect("Failed to read line");
-            self.tx.send(line).expect("Failed to send line");
-        }
-
-        let mut stat = self.exit_status.borrow_mut();
-        match child.try_wait() {
-            Ok(Some(status)) => {
-                *stat = status;
+        let tx = self.tx.clone();
+        thread::spawn(move || {
+            for line in reader.lines() {
+                let line = line.expect("Failed to read line");
+                tx.send(line).expect("Failed to send line");
             }
+        });
+
+        let tx = self.tx.clone();
+        thread::spawn(move || {
+            for line in error_reader.lines() {
+                let line = line.expect("Failed to read line");
+                tx.send(line).expect("Failed to send line");
+            }
+        });
+
+        let mut stat = self.exit_code.borrow_mut();
+        match child.wait() {
+            Ok(r) => *stat = r.code().unwrap(),
             _ => {}
         };
         Ok(())
