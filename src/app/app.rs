@@ -1,3 +1,4 @@
+use crate::traits::tui_widget_trait::TuiWidget;
 use crate::tui::Tui;
 use crate::utils::config_extractor::ConfigExtractor;
 use crate::utils::test_config_extractor::TestConfigExtractor;
@@ -63,13 +64,14 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        match key_event.code {
-            KeyCode::Char('q') => self.exit(),
-            KeyCode::Up => self.welcome_widget.select_previous(),
-            KeyCode::Down => self.welcome_widget.select_next(),
-            KeyCode::Enter => self.select(),
-            _ => {}
-        };
+        if key_event.code == KeyCode::Char('q') {
+        } else {
+            match self.state {
+                State::Welcome => self.welcome_widget.process_input(key_event),
+                State::ErrorHandling => self.error_handling_widget.process_input(key_event),
+                State::Invalid => {}
+            };
+        }
         Ok(())
     }
 

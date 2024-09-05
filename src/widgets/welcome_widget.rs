@@ -3,6 +3,7 @@ mod intro_widget;
 mod recompiling_notice;
 
 use crate::app::app::State;
+use crate::traits::tui_widget_trait::TuiWidget;
 use crate::widgets::list_widget::ListWidget;
 use info_widget::InfoWidget;
 use intro_widget::IntroWidget;
@@ -10,6 +11,7 @@ use ratatui::{
     layout::{Constraint, Layout},
     widgets::Clear,
     Frame,
+    crossterm::event::{KeyEvent, KeyCode},
 };
 use recompiling_notice::RecompilingNotice;
 
@@ -21,6 +23,26 @@ pub struct WelcomeWidget {
     recompiling_notice: RecompilingNotice,
     pub recompiling: bool,
 }
+
+impl TuiWidget for WelcomeWidget {
+    fn process_input(&mut self, key_event: KeyEvent) -> () {
+        match key_event.code {
+            KeyCode::Char('q') => {},
+            KeyCode::Up => {},
+            KeyCode::Down => {},
+            KeyCode::Enter => {},
+            _ => {}
+        };
+    }
+}
+
+// match key_event.code {
+//     KeyCode::Char('q') => {},
+//     KeyCode::Up => self.welcome_widget.select_previous(),
+//     KeyCode::Down => self.welcome_widget.select_next(),
+//     KeyCode::Enter => self.select(),
+//     _ => {}
+// };
 
 impl WelcomeWidget {
     pub fn new(path: String) -> Self {

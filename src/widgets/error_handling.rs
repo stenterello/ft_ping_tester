@@ -1,10 +1,11 @@
 use ratatui::{
     layout::{Constraint, Layout},
     Frame,
+    crossterm::event::{KeyEvent, KeyCode},
 };
-
 use serde_json::Value;
 
+use crate::traits::tui_widget_trait::TuiWidget;
 use crate::widgets::message_widget::MessageWidget;
 use crate::widgets::output_viewer::OutputViewer;
 
@@ -16,6 +17,18 @@ pub struct ErrorHandling {
     running: bool,
     to_run: bool,
     tests: Value,
+}
+
+impl TuiWidget for ErrorHandling {
+    fn process_input(&mut self, key_event: KeyEvent) -> () {
+        match key_event.code {
+            KeyCode::Char('q') => {},
+            KeyCode::Up => {},
+            KeyCode::Down => {},
+            KeyCode::Enter => {},
+            _ => {}
+        };
+    }
 }
 
 impl ErrorHandling {
