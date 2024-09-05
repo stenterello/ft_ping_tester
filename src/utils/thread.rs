@@ -1,6 +1,5 @@
 use crate::utils::subprocess::SubProcess;
 use std::cell::RefCell;
-use std::process::ExitStatus;
 use std::sync::mpsc::Receiver;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, JoinHandle};
@@ -57,5 +56,9 @@ impl Thread {
         let command = self.command.lock().unwrap();
         let code = command.exit_status.borrow().code().unwrap();
         code
+    }
+
+    pub fn clean_output(&mut self) {
+        self.output.borrow_mut().clear();
     }
 }

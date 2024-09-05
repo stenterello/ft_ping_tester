@@ -8,6 +8,7 @@ use ratatui::{
         Wrap,
     },
 };
+use std::cell::RefCell;
 
 use crate::utils::thread::Thread;
 
@@ -16,6 +17,7 @@ pub struct RecompilingNotice {
     thread: Thread,
     location: String,
     vertical_scroll: usize,
+    widget_height: RefCell<usize>,
 }
 
 impl RecompilingNotice {
@@ -24,11 +26,30 @@ impl RecompilingNotice {
             thread: Thread::new("make".into()),
             location: path,
             vertical_scroll: usize::default(),
+            widget_height: RefCell::new(usize::default()),
         }
     }
 
     pub fn start(&mut self) {
         self.thread.start(vec!["-C".into(), self.location.clone()]);
+    }
+
+    pub fn move_up(&mut self) {
+        if self.vertical_scroll > 0 {
+            self.vertical_scroll -= 1;
+        }
+    }
+
+    pub fn move_down(&mut self) {
+        if self.thread.get_output().join("\n").lines().count()
+            > (self.widget_height.borrow().to_owned() + self.vertical_scroll - 5)
+        {
+            self.vertical_scroll += 1;
+        }
+    }
+
+    pub fn clean_output(&mut self) {
+        self.thread.clean_output();
     }
 }
 
@@ -51,17 +72,13 @@ impl Widget for &RecompilingNotice {
         }
 
         let text = self.thread.get_output().join("\n");
-
-        let mut p = self.vertical_scroll;
-
-        if text.clone().lines().count() > area.height as usize {
-            p += text.clone().lines().count() - area.height as usize;
-        }
+        let mut h = self.widget_height.borrow_mut();
+        *h = area.height as usize;
 
         Paragraph::new(text.clone())
             .block(block.clone())
             .wrap(Wrap { trim: true })
-            .scroll((p as u16, 0))
+            .scroll((self.vertical_scroll as u16, 0))
             .style(Style::default().fg(Color::White))
             .render(area, buf);
 
@@ -69,7 +86,10 @@ impl Widget for &RecompilingNotice {
             .begin_symbol(Some("^"))
             .end_symbol(Some("v"));
 
-        let mut scrollbar_state = ScrollbarState::new(text.lines().count()).position(p);
+        let mut scrollbar_state = ScrollbarState::default()
+            .content_length(text.lines().count())
+            .viewport_content_length(*h)
+            .position(self.vertical_scroll);
 
         scrollbar.render(
             area.inner(Margin {

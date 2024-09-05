@@ -64,13 +64,22 @@ impl App {
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        if key_event.code == KeyCode::Char('q') {
-        } else {
-            match self.state {
-                State::Welcome => self.welcome_widget.process_input(key_event),
-                State::ErrorHandling => self.error_handling_widget.process_input(key_event),
-                State::Invalid => {}
-            };
+        match key_event.code {
+            KeyCode::Char('q') => {
+                if self.welcome_widget.recompiling {
+                    self.welcome_widget.recompile(false);
+                } else {
+                    self.exit();
+                }
+            }
+            KeyCode::Enter => self.select(),
+            _ => {
+                match self.state {
+                    State::Welcome => self.welcome_widget.process_input(key_event),
+                    State::ErrorHandling => self.error_handling_widget.process_input(key_event),
+                    State::Invalid => {}
+                };
+            }
         }
         Ok(())
     }

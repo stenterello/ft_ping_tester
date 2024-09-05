@@ -8,10 +8,10 @@ use crate::widgets::list_widget::ListWidget;
 use info_widget::InfoWidget;
 use intro_widget::IntroWidget;
 use ratatui::{
+    crossterm::event::{KeyCode, KeyEvent},
     layout::{Constraint, Layout},
     widgets::Clear,
     Frame,
-    crossterm::event::{KeyEvent, KeyCode},
 };
 use recompiling_notice::RecompilingNotice;
 
@@ -27,10 +27,20 @@ pub struct WelcomeWidget {
 impl TuiWidget for WelcomeWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match key_event.code {
-            KeyCode::Char('q') => {},
-            KeyCode::Up => {},
-            KeyCode::Down => {},
-            KeyCode::Enter => {},
+            KeyCode::Up => {
+                if self.recompiling {
+                    self.recompiling_notice.move_up();
+                } else {
+                    self.select_previous();
+                }
+            }
+            KeyCode::Down => {
+                if self.recompiling {
+                    self.recompiling_notice.move_down();
+                } else {
+                    self.select_next();
+                }
+            }
             _ => {}
         };
     }
@@ -107,9 +117,12 @@ impl WelcomeWidget {
         self.select_test_widget.select_next();
     }
 
-    pub fn recompile(&mut self) {
-        self.recompiling = true;
-        self.recompiling_notice.start();
+    pub fn recompile(&mut self, val: bool) {
+        self.recompiling = val;
+        if val {
+            // self.recompiling_notice.clean_output();
+            self.recompiling_notice.start();
+        }
     }
 
     pub fn select_state(&mut self) -> State {
@@ -119,7 +132,7 @@ impl WelcomeWidget {
             0 => State::Welcome,
             1 => State::ErrorHandling,
             4 => {
-                self.recompile();
+                self.recompile(true);
                 State::Welcome
             }
             _ => State::Invalid,
