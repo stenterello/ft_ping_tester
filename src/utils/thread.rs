@@ -9,7 +9,9 @@ use std::thread::{self, JoinHandle};
 pub struct Thread {
     command: Arc<Mutex<SubProcess>>,
     rx: Receiver<String>,
+    error_rx: Receiver<String>,
     output: RefCell<Vec<String>>,
+    error_output: RefCell<Vec<String>>,
     name: String,
     handle: Option<JoinHandle<Result<()>>>,
 }
@@ -17,10 +19,13 @@ pub struct Thread {
 impl Thread {
     pub fn new(path: String) -> Self {
         let (tx, rx) = mpsc::channel();
+        let (error_tx, error_rx) = mpsc::channel();
         Self {
-            command: Arc::new(Mutex::new(SubProcess::new(path.clone(), tx))),
+            command: Arc::new(Mutex::new(SubProcess::new(path.clone(), tx, error_tx))),
             rx,
+            error_rx,
             output: RefCell::new(Vec::default()),
+            error_output: RefCell::new(Vec::default()),
             name: path,
             handle: None,
         }
@@ -29,7 +34,7 @@ impl Thread {
     pub fn start(&mut self, args: Vec<String>) {
         let command = Arc::clone(&self.command);
         let handle = move || -> Result<()> {
-            let command = command.lock().unwrap();
+            let mut command = command.lock().unwrap();
             command.start(args)
         };
 
@@ -46,6 +51,14 @@ impl Thread {
         self.output.borrow().clone()
     }
 
+    pub fn get_error_output(&self) -> Vec<String> {
+        match self.error_rx.try_recv() {
+            Ok(received) => self.error_output.borrow_mut().push(received),
+            _ => {}
+        };
+        self.error_output.borrow().clone()
+    }
+
     pub fn is_running(&self) -> bool {
         match &self.handle {
             Some(t) => !t.is_finished(),
@@ -53,10 +66,9 @@ impl Thread {
         }
     }
 
-    pub fn get_exit_status(&self) -> i32 {
+    pub fn get_exit_status(&self) -> Option<i32> {
         let command = self.command.lock().unwrap();
         let code = command.exit_code.borrow();
-        println!("Returning: {}", code);
         *code
     }
 

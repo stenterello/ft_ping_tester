@@ -60,15 +60,11 @@ impl App {
                 Ok(_) => {}
                 Err(e) => error = Some(Err(e)),
             })?;
-            // println!("CHECK");
             match error {
                 Some(e) => {
-                    println!("ERROR");
                     return e;
                 }
-                None => {
-                    // println!("OK");
-                }
+                None => {}
             }
             self.handle_events()?;
             if self.about_to_quit == true {
@@ -115,9 +111,7 @@ impl App {
         match self.state {
             State::Welcome => self.welcome_widget.draw(frame),
             State::ErrorHandling => match self.error_handling_widget.draw(frame) {
-                Ok(_) => {
-                    // println!("RITORNO OK")
-                }
+                Ok(_) => {}
                 Err(e) => return Err(e),
             },
             _ => {}

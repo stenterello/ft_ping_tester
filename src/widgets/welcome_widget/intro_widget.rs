@@ -1,12 +1,11 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
-    style::{Stylize, Style, Color},
+    style::{Color, Style, Stylize},
     text::{Line, Text},
     widgets::{
-        block::{Block, Title, BorderType},
-        Paragraph, Widget,
-        Wrap,
+        block::{Block, BorderType, Title},
+        Paragraph, Widget, Wrap,
     },
 };
 
@@ -28,24 +27,21 @@ impl Widget for &IntroWidget {
             Line::from(" This part focuses on comparing the outputs from different command and options with your ft_ping and ping."),
             Line::from(""),
             Line::from(" Performance tester ".bold().yellow()),
-            Line::from(" This part focuses on comparing some specific traits from your implementation of ft_ping and ping, such as number of packets send in a simple flood call."),
+            Line::from(" This part focuses on comparing some specific traits from your implementation of ft_ping and ping, such as number of packets sent in a simple flood call."),
             Line::from(""),
             Line::from(""),
             Line::from(" Choose below the option to run all the tester consequencially or run only a specific part."),
         ]);
-        
+
         let block = Block::bordered()
             .title(title.alignment(Alignment::Center))
-            .style(Style::default()
-                    .fg(Color::Yellow))
+            .style(Style::default().fg(Color::Yellow))
             .border_type(BorderType::Rounded);
 
         Paragraph::new(description)
             .block(block)
             .wrap(Wrap { trim: true })
-            .style(Style::default()
-                    .bg(Color::Rgb(46, 52, 64))
-                    .fg(Color::White))
+            .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
             .render(area.clone(), buf);
     }
 }

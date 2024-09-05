@@ -46,14 +46,6 @@ impl TuiWidget for WelcomeWidget {
     }
 }
 
-// match key_event.code {
-//     KeyCode::Char('q') => {},
-//     KeyCode::Up => self.welcome_widget.select_previous(),
-//     KeyCode::Down => self.welcome_widget.select_next(),
-//     KeyCode::Enter => self.select(),
-//     _ => {}
-// };
-
 impl WelcomeWidget {
     pub fn new(path: String) -> Self {
         WelcomeWidget {
@@ -120,7 +112,7 @@ impl WelcomeWidget {
     pub fn recompile(&mut self, val: bool) {
         self.recompiling = val;
         if val {
-            // self.recompiling_notice.clean_output();
+            self.recompiling_notice.clean_output();
             self.recompiling_notice.start();
         }
     }

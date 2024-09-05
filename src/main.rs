@@ -17,7 +17,6 @@ fn main() -> Result<()> {
         Ok(()) => tui.restore()?,
         Err(e) => {
             tui.restore()?;
-            eprintln!("{}", e);
             return Err(e);
         }
     }

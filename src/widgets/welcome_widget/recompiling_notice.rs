@@ -65,13 +65,14 @@ impl Widget for &RecompilingNotice {
 
         if self.thread.is_running() {
             block = block.title(recompiling_title);
-        } else if self.thread.get_exit_status() == 0 {
+        } else if self.thread.get_exit_status() == Some(0) {
             block = block.title(done_title);
         } else {
             block = block.title(error_title);
         }
 
-        let text = self.thread.get_output().join("\n");
+        let mut text = self.thread.get_output().join("\n");
+        text.push_str(self.thread.get_error_output().join("\n").as_str());
         let mut h = self.widget_height.borrow_mut();
         *h = area.height as usize;
 

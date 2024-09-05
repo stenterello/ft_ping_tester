@@ -10,35 +10,37 @@ use std::thread;
 pub struct SubProcess {
     path: String,
     tx: Sender<String>,
-    pub exit_code: RefCell<i32>,
+    error_tx: Sender<String>,
+    pub exit_code: RefCell<Option<i32>>,
 }
 
 impl SubProcess {
-    pub fn new(path: String, tx: Sender<String>) -> Self {
+    pub fn new(path: String, tx: Sender<String>, error_tx: Sender<String>) -> Self {
         SubProcess {
             path,
             tx,
-            exit_code: RefCell::new(1),
+            error_tx,
+            exit_code: RefCell::new(None),
         }
     }
 
-    pub fn start(&self, args: Vec<String>) -> Result<()> {
-        let child = Command::new(self.path.clone())
+    pub fn start(&mut self, args: Vec<String>) -> Result<()> {
+        let mut stat = self.exit_code.borrow_mut();
+        let child: Result<Child> = match Command::new(self.path.clone())
             .args(&args)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .spawn();
-
-        let unwrapped_child: Option<Child>;
-
-        match child {
-            Ok(inner_child) => {
-                unwrapped_child = Some(inner_child);
+            .spawn()
+        {
+            Ok(a) => Ok(a),
+            Err(e) => {
+                *stat = Some(1);
+                return Err(e);
             }
-            Err(e) => return Err(e),
         };
 
-        let mut child = unwrapped_child.unwrap();
+        let mut child = child.unwrap();
+
         let reader = BufReader::new(child.stdout.take().unwrap());
         let error_reader = BufReader::new(child.stderr.take().unwrap());
 
@@ -50,18 +52,21 @@ impl SubProcess {
             }
         });
 
-        let tx = self.tx.clone();
+        let error_tx = self.error_tx.clone();
         thread::spawn(move || {
             for line in error_reader.lines() {
                 let line = line.expect("Failed to read line");
-                tx.send(line).expect("Failed to send line");
+                error_tx.send(line).expect("Failed to send line");
             }
         });
 
-        let mut stat = self.exit_code.borrow_mut();
         match child.wait() {
-            Ok(r) => *stat = r.code().unwrap(),
-            _ => {}
+            Ok(r) => {
+                *stat = Some(r.code().unwrap());
+            }
+            _ => {
+                *stat = Some(1);
+            }
         };
         Ok(())
     }

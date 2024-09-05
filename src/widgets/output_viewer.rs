@@ -23,8 +23,12 @@ impl OutputViewer {
         self.thread.start(vec!["localhost".into()]);
     }
 
-    pub fn get_exit_status(&self) -> i32 {
+    pub fn get_exit_status(&self) -> Option<i32> {
         self.thread.get_exit_status()
+    }
+
+    pub fn get_error_output(&self) -> Vec<String> {
+        self.thread.get_error_output()
     }
 
     pub fn is_running(&self) -> bool {

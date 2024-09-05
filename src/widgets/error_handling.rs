@@ -52,30 +52,31 @@ impl ErrorHandling {
     }
 
     fn check_treads(&mut self) -> Result<()> {
-        println!("CHECK ON THREADS");
         if !self.ft_ping_output_viewer.is_running() {
-            println!(
-                "EXIT STATUS = {}",
-                self.ft_ping_output_viewer.get_exit_status()
-            );
-            if self.ft_ping_output_viewer.get_exit_status() != 0 {
-                return Err(Error::new(
-                    ErrorKind::Interrupted,
-                    "Error in ft_ping subprocess",
-                ));
+            match self.ft_ping_output_viewer.get_exit_status() {
+                Some(n) => {
+                    return Err(Error::new(
+                        ErrorKind::Interrupted,
+                        format!(
+                            "Exit code: {} : {}",
+                            n,
+                            self.ft_ping_output_viewer.get_error_output().join("\n")
+                        ),
+                    ));
+                }
+                None => {}
             }
         }
 
         if !self.ping_output_viewer.is_running() {
-            println!(
-                "EXIT STATUS = {}",
-                self.ping_output_viewer.get_exit_status()
-            );
-            if self.ping_output_viewer.get_exit_status() != 0 {
-                return Err(Error::new(
-                    ErrorKind::Interrupted,
-                    "Error in ping subprocess",
-                ));
+            match self.ping_output_viewer.get_exit_status() {
+                Some(n) => {
+                    return Err(Error::new(
+                        ErrorKind::Interrupted,
+                        format!("Error in ping subprocess. Exit code: {}", n),
+                    ));
+                }
+                None => {}
             }
         }
 
@@ -87,7 +88,6 @@ impl ErrorHandling {
     }
 
     pub fn draw(&mut self, frame: &mut Frame) -> Result<()> {
-        print!("{}", self.running);
         if self.running == false && self.to_run {
             self.run_processes();
             self.to_run = false;
