@@ -1,7 +1,7 @@
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Style, Color},
+    style::{Color, Style},
     widgets::{Block, Paragraph, Widget, Wrap},
 };
 
@@ -21,6 +21,14 @@ impl OutputViewer {
 
     pub fn start_process(&mut self) -> () {
         self.thread.start(vec!["localhost".into()]);
+    }
+
+    pub fn get_exit_status(&self) -> i32 {
+        self.thread.get_exit_status()
+    }
+
+    pub fn is_running(&self) -> bool {
+        self.thread.is_running()
     }
 }
 

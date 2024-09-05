@@ -13,7 +13,7 @@ pub struct ConfigValues {
     pub locations: Locations,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Locations {
     pub ft_ping_dir: String,
     pub ping_dir: String,

@@ -35,21 +35,41 @@ impl App {
     pub fn new() -> Result<Self> {
         let config = ConfigExtractor::decode(CONF_FILE.into());
         if !config.valid {
-            return Err(Error::new(ErrorKind::Other, "Invalid paths in conf.toml"));
+            return Err(Error::new(
+                ErrorKind::InvalidInput,
+                "Invalid paths in conf.toml",
+            ));
         }
         let config: ConfigValues = config.config.unwrap();
-        let tests = TestConfigExtractor::decode(config.locations.test_conf_path.into());
+        let tests = TestConfigExtractor::decode(config.locations.test_conf_path.clone());
         Ok(App {
-            welcome_widget: WelcomeWidget::new(config.locations.ft_ping_dir.into()),
-            error_handling_widget: ErrorHandling::new(tests["error_handling"].clone()),
+            welcome_widget: WelcomeWidget::new(config.locations.ft_ping_dir.clone()),
+            error_handling_widget: ErrorHandling::new(
+                config.locations.clone(),
+                tests["error_handling"].clone(),
+            ),
             state: State::default(),
             about_to_quit: false,
         })
     }
 
     pub fn run(&mut self, tui: &mut Tui) -> Result<()> {
+        let mut error: Option<Result<()>> = None;
         loop {
-            tui.terminal.draw(|frame| self.render(frame))?;
+            tui.terminal.draw(|frame| match self.render(frame) {
+                Ok(_) => {}
+                Err(e) => error = Some(Err(e)),
+            })?;
+            // println!("CHECK");
+            match error {
+                Some(e) => {
+                    println!("ERROR");
+                    return e;
+                }
+                None => {
+                    // println!("OK");
+                }
+            }
             self.handle_events()?;
             if self.about_to_quit == true {
                 break;
@@ -91,12 +111,18 @@ impl App {
         Ok(())
     }
 
-    fn render(&mut self, frame: &mut Frame) {
+    fn render(&mut self, frame: &mut Frame) -> Result<()> {
         match self.state {
             State::Welcome => self.welcome_widget.draw(frame),
-            State::ErrorHandling => self.error_handling_widget.draw(frame),
+            State::ErrorHandling => match self.error_handling_widget.draw(frame) {
+                Ok(_) => {
+                    // println!("RITORNO OK")
+                }
+                Err(e) => return Err(e),
+            },
             _ => {}
         };
+        Ok(())
     }
 
     fn select(&mut self) {

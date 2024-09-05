@@ -1,5 +1,6 @@
 use crate::utils::subprocess::SubProcess;
 use std::cell::RefCell;
+use std::io::Result;
 use std::sync::mpsc::Receiver;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, JoinHandle};
@@ -10,7 +11,7 @@ pub struct Thread {
     rx: Receiver<String>,
     output: RefCell<Vec<String>>,
     name: String,
-    handle: Option<JoinHandle<()>>,
+    handle: Option<JoinHandle<Result<()>>>,
 }
 
 impl Thread {
@@ -27,9 +28,9 @@ impl Thread {
 
     pub fn start(&mut self, args: Vec<String>) {
         let command = Arc::clone(&self.command);
-        let handle = move || {
+        let handle = move || -> Result<()> {
             let command = command.lock().unwrap();
-            command.start(args);
+            command.start(args)
         };
 
         let thread = thread::Builder::new().name(self.name.clone());
@@ -55,6 +56,7 @@ impl Thread {
     pub fn get_exit_status(&self) -> i32 {
         let command = self.command.lock().unwrap();
         let code = command.exit_status.borrow().code().unwrap();
+        println!("Returning: {}", code);
         code
     }
 

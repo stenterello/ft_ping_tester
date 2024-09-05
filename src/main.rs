@@ -13,8 +13,14 @@ fn main() -> Result<()> {
     let mut tui = Tui::new()?;
     tui.enter()?;
 
-    app.run(&mut tui)?;
+    match app.run(&mut tui) {
+        Ok(()) => tui.restore()?,
+        Err(e) => {
+            tui.restore()?;
+            eprintln!("{}", e);
+            return Err(e);
+        }
+    }
 
-    tui.restore()?;
     Ok(())
 }

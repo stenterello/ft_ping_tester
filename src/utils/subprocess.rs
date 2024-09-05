@@ -1,7 +1,8 @@
+extern crate libc;
+
 use std::cell::RefCell;
-use std::io::{BufRead, BufReader};
-use std::panic;
-use std::process::{self, ChildStderr, ChildStdout, Command, ExitStatus, Stdio};
+use std::io::{BufRead, BufReader, Result};
+use std::process::{Child, ChildStderr, ChildStdout, Command, ExitStatus, Stdio};
 use std::sync::mpsc::Sender;
 
 #[derive(Debug)]
@@ -20,19 +21,23 @@ impl SubProcess {
         }
     }
 
-    pub fn start(&self, args: Vec<String>) -> () {
-        let orig_hook = panic::take_hook();
-        panic::set_hook(Box::new(move |panic_info| {
-            orig_hook(panic_info);
-            process::exit(1);
-        }));
-
-        let mut child = Command::new(self.path.clone())
+    pub fn start(&self, args: Vec<String>) -> Result<()> {
+        let child = Command::new(self.path.clone())
             .args(&args)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .spawn()
-            .unwrap();
+            .spawn();
+
+        let unwrapped_child: Option<Child>;
+
+        match child {
+            Ok(inner_child) => {
+                unwrapped_child = Some(inner_child);
+            }
+            Err(e) => return Err(e),
+        };
+
+        let mut child = unwrapped_child.unwrap();
 
         let stdout: ChildStdout = child.stdout.take().unwrap();
         let reader = BufReader::new(stdout);
@@ -54,6 +59,7 @@ impl SubProcess {
                 *stat = status;
             }
             _ => {}
-        }
+        };
+        Ok(())
     }
 }

@@ -1,11 +1,13 @@
 use ratatui::{
+    crossterm::event::{KeyCode, KeyEvent},
     layout::{Constraint, Layout},
     Frame,
-    crossterm::event::{KeyEvent, KeyCode},
 };
 use serde_json::Value;
+use std::io::{Error, ErrorKind, Result};
 
 use crate::traits::tui_widget_trait::TuiWidget;
+use crate::utils::config_extractor::Locations;
 use crate::widgets::message_widget::MessageWidget;
 use crate::widgets::output_viewer::OutputViewer;
 
@@ -22,20 +24,20 @@ pub struct ErrorHandling {
 impl TuiWidget for ErrorHandling {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match key_event.code {
-            KeyCode::Char('q') => {},
-            KeyCode::Up => {},
-            KeyCode::Down => {},
-            KeyCode::Enter => {},
+            KeyCode::Char('q') => {}
+            KeyCode::Up => {}
+            KeyCode::Down => {}
+            KeyCode::Enter => {}
             _ => {}
         };
     }
 }
 
 impl ErrorHandling {
-    pub fn new(tests: Value) -> Self {
+    pub fn new(locations: Locations, tests: Value) -> Self {
         ErrorHandling {
-            ft_ping_output_viewer: OutputViewer::new("./ft_ping/ft_ping"),
-            ping_output_viewer: OutputViewer::new("./inetutils-2.0/ping/ping"),
+            ft_ping_output_viewer: OutputViewer::new(&locations.ft_ping_dir),
+            ping_output_viewer: OutputViewer::new(&locations.ping_dir),
             message_widget: MessageWidget::default(),
             running: false,
             to_run: true,
@@ -49,10 +51,51 @@ impl ErrorHandling {
         self.running = true;
     }
 
-    pub fn draw(&mut self, frame: &mut Frame) {
+    fn check_treads(&mut self) -> Result<()> {
+        println!("CHECK ON THREADS");
+        if !self.ft_ping_output_viewer.is_running() {
+            println!(
+                "EXIT STATUS = {}",
+                self.ft_ping_output_viewer.get_exit_status()
+            );
+            if self.ft_ping_output_viewer.get_exit_status() != 0 {
+                return Err(Error::new(
+                    ErrorKind::Interrupted,
+                    "Error in ft_ping subprocess",
+                ));
+            }
+        }
+
+        if !self.ping_output_viewer.is_running() {
+            println!(
+                "EXIT STATUS = {}",
+                self.ping_output_viewer.get_exit_status()
+            );
+            if self.ping_output_viewer.get_exit_status() != 0 {
+                return Err(Error::new(
+                    ErrorKind::Interrupted,
+                    "Error in ping subprocess",
+                ));
+            }
+        }
+
+        if !self.ft_ping_output_viewer.is_running() && !self.ping_output_viewer.is_running() {
+            self.running = false;
+        }
+
+        Ok(())
+    }
+
+    pub fn draw(&mut self, frame: &mut Frame) -> Result<()> {
+        print!("{}", self.running);
         if self.running == false && self.to_run {
             self.run_processes();
             self.to_run = false;
+        } else if self.running {
+            match self.check_treads() {
+                Ok(_) => {}
+                Err(e) => return Err(e),
+            }
         }
 
         let [upper_area, _] =
@@ -65,5 +108,6 @@ impl ErrorHandling {
 
         frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
         frame.render_widget(&self.ping_output_viewer, upper_right_area);
+        Ok(())
     }
 }
