@@ -1,6 +1,6 @@
 use crate::traits::tui_widget_trait::TuiWidget;
 use crate::tui::Tui;
-use crate::utils::config_extractor::ConfigExtractor;
+use crate::utils::config_extractor::{ConfigExtractor, ConfigValues};
 use crate::utils::test_config_extractor::TestConfigExtractor;
 use crate::widgets::error_handling::ErrorHandling;
 use crate::widgets::welcome_widget::WelcomeWidget;
@@ -8,7 +8,10 @@ use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     Frame,
 };
-use std::{io::Result, time::Duration};
+use std::{
+    io::{Error, ErrorKind, Result},
+    time::Duration,
+};
 
 const CONF_FILE: &str = "./conf.toml";
 
@@ -29,15 +32,19 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         let config = ConfigExtractor::decode(CONF_FILE.into());
-        let tests = TestConfigExtractor::decode(config.test_conf_path.into());
-        App {
-            welcome_widget: WelcomeWidget::new(config.ft_ping_dir.into()),
+        if !config.valid {
+            return Err(Error::new(ErrorKind::Other, "Invalid paths in conf.toml"));
+        }
+        let config: ConfigValues = config.config.unwrap();
+        let tests = TestConfigExtractor::decode(config.locations.test_conf_path.into());
+        Ok(App {
+            welcome_widget: WelcomeWidget::new(config.locations.ft_ping_dir.into()),
             error_handling_widget: ErrorHandling::new(tests["error_handling"].clone()),
             state: State::default(),
             about_to_quit: false,
-        }
+        })
     }
 
     pub fn run(&mut self, tui: &mut Tui) -> Result<()> {

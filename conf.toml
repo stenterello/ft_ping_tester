@@ -1,4 +1,4 @@
 [locations]
-ft_ping_dir = "../ft_ping/"
+ft_ping_dir = "./ft_ping/"
 ping_dir = "./inetutils-2.0/ping/"
 test_conf_path = "./tests.json"
