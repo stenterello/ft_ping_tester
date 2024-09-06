@@ -11,6 +11,11 @@ use crate::utils::config_extractor::Locations;
 use crate::widgets::message_widget::MessageWidget;
 use crate::widgets::output_viewer::OutputViewer;
 
+enum OutputViewerWidget {
+    FtPing,
+    Ping,
+}
+
 #[derive(Debug)]
 pub struct ErrorHandling {
     ft_ping_output_viewer: OutputViewer,
@@ -51,19 +56,24 @@ impl ErrorHandling {
         self.running = true;
     }
 
-    fn check_thread_exit_status(&mut self, output_viewer: &mut OutputViewer) -> Result<()> {
-        if output_viewer.is_running() {
-            match output_viewer.get_exit_status() {
+    fn check_thread_exit_status(&mut self, output_viewer: OutputViewerWidget) -> Result<()> {
+        let widget = match output_viewer {
+            OutputViewerWidget::FtPing => &mut self.ft_ping_output_viewer,
+            OutputViewerWidget::Ping => &mut self.ping_output_viewer,
+        };
+
+        if widget.is_running() {
+            match widget.get_exit_status() {
                 Some(n) => {
                     return Err(Error::new(
                         ErrorKind::Interrupted,
                         format!(
                             "Exit code: {} : {}",
                             n,
-                            output_viewer.get_error_output().join("\n")
+                            widget.get_error_output().join("\n")
                         ),
                     ));
-                }
+                },
                 None => {}
             }
         }
@@ -71,14 +81,15 @@ impl ErrorHandling {
     }
 
     fn check_treads(&mut self) -> Result<()> {
-        match self.check_thread_exit_status(&self.ft_ping_output_viewer) {
+        println!("Eccomi");
+        match self.check_thread_exit_status(OutputViewerWidget::FtPing) {
             Ok(_) => {}
-            Err(e) => return Err(e),
+            Err(e) => { println!("return error"); return Err(e) },
         }
 
-        match self.check_thread_exit_status(&self.ping_output_viewer) {
+        match self.check_thread_exit_status(OutputViewerWidget::Ping) {
             Ok(_) => {}
-            Err(e) => return Err(e),
+            Err(e) => { println!("return error"); return Err(e) },
         }
 
         if !self.ft_ping_output_viewer.is_running() && !self.ping_output_viewer.is_running() {
