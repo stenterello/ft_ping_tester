@@ -51,33 +51,34 @@ impl ErrorHandling {
         self.running = true;
     }
 
-    fn check_treads(&mut self) -> Result<()> {
-        if !self.ft_ping_output_viewer.is_running() {
-            match self.ft_ping_output_viewer.get_exit_status() {
+    fn check_thread_exit_status(&mut self, output_viewer: &mut OutputViewer) -> Result<()> {
+        if output_viewer.is_running() {
+            match output_viewer.get_exit_status() {
                 Some(n) => {
                     return Err(Error::new(
                         ErrorKind::Interrupted,
                         format!(
                             "Exit code: {} : {}",
                             n,
-                            self.ft_ping_output_viewer.get_error_output().join("\n")
+                            output_viewer.get_error_output().join("\n")
                         ),
                     ));
                 }
                 None => {}
             }
         }
+        Ok(())
+    }
 
-        if !self.ping_output_viewer.is_running() {
-            match self.ping_output_viewer.get_exit_status() {
-                Some(n) => {
-                    return Err(Error::new(
-                        ErrorKind::Interrupted,
-                        format!("Error in ping subprocess. Exit code: {}", n),
-                    ));
-                }
-                None => {}
-            }
+    fn check_treads(&mut self) -> Result<()> {
+        match self.check_thread_exit_status(&self.ft_ping_output_viewer) {
+            Ok(_) => {}
+            Err(e) => return Err(e),
+        }
+
+        match self.check_thread_exit_status(&self.ping_output_viewer) {
+            Ok(_) => {}
+            Err(e) => return Err(e),
         }
 
         if !self.ft_ping_output_viewer.is_running() && !self.ping_output_viewer.is_running() {
