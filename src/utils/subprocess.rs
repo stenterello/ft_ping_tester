@@ -11,7 +11,7 @@ pub struct SubProcess {
     path: String,
     tx: Sender<String>,
     error_tx: Sender<String>,
-    pub exit_code: RefCell<Option<i32>>,
+    pub exit: RefCell<(Option<i32>, Option<String>)>,
 }
 
 impl SubProcess {
@@ -20,7 +20,7 @@ impl SubProcess {
             path,
             tx,
             error_tx,
-            exit_code: RefCell::new(None),
+            exit: RefCell::new((None, None)),
         }
     }
 
@@ -34,7 +34,7 @@ impl SubProcess {
     }
 
     pub fn start(&mut self, args: Vec<String>) -> Result<()> {
-        let mut stat = self.exit_code.borrow_mut();
+        let mut stat = self.exit.borrow_mut();
         let mut child: Child = match Command::new(self.path.clone())
             .args(&args)
             .stdout(Stdio::piped())
@@ -43,7 +43,7 @@ impl SubProcess {
         {
             Ok(a) => a,
             Err(e) => {
-                *stat = Some(1);
+                *stat = (None, Some(e.to_string()));
                 return Err(e);
             }
         };
@@ -59,10 +59,10 @@ impl SubProcess {
 
         match child.wait() {
             Ok(r) => {
-                *stat = Some(r.code().unwrap());
+                *stat = (Some(r.code().unwrap()), None);
             }
-            _ => {
-                *stat = Some(1);
+            Err(e) => {
+                *stat = (None, Some(e.to_string()));
             }
         };
         Ok(())
