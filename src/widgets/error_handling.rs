@@ -146,16 +146,16 @@ impl<'a> ErrorHandling<'a> {
 
                 match ErrorHandling::compare_output(&mut ft_ping_error_text, &ping_error_text) {
                     (true, Some(vec)) => {
-                        self.ft_ping_output_viewer.set_text_to_display(vec.clone());
-                        self.ping_output_viewer.set_text_to_display(vec);
+                        self.ft_ping_output_viewer.set_text_to_display(vec.0);
+                        self.ping_output_viewer.set_text_to_display(vec.1);
                     }
                     (false, Some(vec)) => {}
                     _ => {}
                 }
             }
             (true, Some(vec)) => {
-                self.ft_ping_output_viewer.set_text_to_display(vec.clone());
-                self.ping_output_viewer.set_text_to_display(vec);
+                self.ft_ping_output_viewer.set_text_to_display(vec.0);
+                self.ping_output_viewer.set_text_to_display(vec.1);
             }
             (false, Some(vec)) => {}
             _ => {}
