@@ -67,13 +67,17 @@ impl Thread {
     }
 
     pub fn get_exit(&self) -> (Option<i32>, Option<String>) {
-        let command = self.command.lock().unwrap();
-        let code = command.exit.borrow();
+        if self.is_running() {
+            (None, None)
+        } else {
+            let command = self.command.lock().unwrap();
+            let code = command.exit.borrow();
 
-        match &*code {
-            (Some(r), _) => (Some(r.clone()), None),
-            (_, Some(err)) => (None, Some(err.to_string())),
-            _ => (None, None)
+            match &*code {
+                (Some(r), _) => (Some(r.clone()), None),
+                (_, Some(err)) => (None, Some(err.to_string())),
+                _ => (None, None),
+            }
         }
     }
 
