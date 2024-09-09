@@ -1,26 +1,23 @@
 use ratatui::{
-    buffer::Buffer,
-    layout::{Alignment, Rect},
-    style::{Color, Style, Stylize},
-    widgets::{
+    buffer::Buffer, layout::{Alignment, Rect}, style::{Color, Style, Stylize}, text::{Line, Span}, widgets::{
         block::{BorderType, Title},
         Block, Paragraph, Widget, Wrap,
-    },
+    }
 };
 
 use crate::utils::thread::Thread;
 
 #[derive(Debug)]
-pub struct OutputViewer {
+pub struct OutputViewer<'a> {
     thread: Thread,
-    to_display: String,
+    to_display: Vec<Line<'a>>,
 }
 
-impl OutputViewer {
+impl<'a> OutputViewer<'a> {
     pub fn new(path: &str, name: &str) -> Self {
         OutputViewer {
             thread: Thread::new(path.into(), name.into()),
-            to_display: String::default(),
+            to_display: Vec::default(),
         }
     }
 
@@ -54,12 +51,16 @@ impl OutputViewer {
         }
     }
 
-    pub fn set_text_to_display(&mut self, display: String) -> () {
+    pub fn set_text_to_display(&mut self, display: Vec<Line<'a>>) -> () {
         self.to_display = display;
+    }
+
+    pub fn clear_text_to_display(&mut self) {
+        self.to_display = Vec::default();
     }
 }
 
-impl Widget for &OutputViewer {
+impl<'a> Widget for &OutputViewer<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut t: String = String::from(" ");
         t.push_str((String::from(self.thread.name.clone()) + " ").as_str());

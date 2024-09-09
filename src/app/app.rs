@@ -24,14 +24,14 @@ pub enum State {
 }
 
 #[derive(Debug)]
-pub struct App {
+pub struct App<'a> {
     welcome_widget: WelcomeWidget,
-    error_handling_widget: ErrorHandling,
+    error_handling_widget: ErrorHandling<'a>,
     state: State,
     about_to_quit: bool,
 }
 
-impl App {
+impl<'a> App<'a> {
     pub fn new() -> Result<Self> {
         let config = ConfigExtractor::decode(CONF_FILE.into());
         if !config.valid {

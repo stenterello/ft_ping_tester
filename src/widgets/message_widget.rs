@@ -48,12 +48,12 @@ impl Widget for &MessageWidget {
             tmp.push_str("...");
             tmp
         } else {
-            let mut tmp = String::from("Last run: {ping}");
+            let mut tmp = String::from("Last run: |{ping}");
             for arg in &self.arguments {
                 tmp.push_str(" ");
                 tmp.push_str(arg.as_str());
             }
-            tmp.push_str(".");
+            tmp.push_str("|.");
             tmp
         };
 
