@@ -1,8 +1,11 @@
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
-    style::{Color, Style},
-    widgets::{Block, Paragraph, Widget, Wrap},
+    layout::{Alignment, Rect},
+    style::{Color, Style, Stylize},
+    widgets::{
+        block::{BorderType, Title},
+        Block, Paragraph, Widget, Wrap,
+    },
 };
 
 use crate::utils::thread::Thread;
@@ -13,9 +16,9 @@ pub struct OutputViewer {
 }
 
 impl OutputViewer {
-    pub fn new(path: &str) -> Self {
+    pub fn new(path: &str, name: &str) -> Self {
         OutputViewer {
-            thread: Thread::new(path.into()),
+            thread: Thread::new(path.into(), name.into()),
         }
     }
 
@@ -39,17 +42,23 @@ impl OutputViewer {
         match self.get_error_output().len() {
             0 => match self.thread.get_exit() {
                 (None, Some(err)) => err,
-                _ => String::default()
+                _ => String::default(),
             },
-            _ => self.get_error_output().join("\n")
+            _ => self.get_error_output().join("\n"),
         }
     }
 }
 
 impl Widget for &OutputViewer {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let mut t: String = String::from(" ");
+        t.push_str((String::from(self.thread.name.clone()) + " ").as_str());
+        let title = Title::from(t.as_str().bold().yellow());
         let text = self.thread.get_output().join("\n");
-        let block = Block::bordered();
+        let block = Block::bordered()
+            .title(title.alignment(Alignment::Center))
+            .style(Style::default().fg(Color::Yellow))
+            .border_type(BorderType::Rounded);
         Paragraph::new(text)
             .block(block)
             .wrap(Wrap { trim: true })
