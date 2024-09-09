@@ -12,21 +12,28 @@ pub struct Thread {
     error_rx: Receiver<String>,
     output: RefCell<Vec<String>>,
     error_output: RefCell<Vec<String>>,
-    name: String,
+    path: String,
+    pub name: String,
     handle: Option<JoinHandle<Result<()>>>,
 }
 
 impl Thread {
-    pub fn new(path: String) -> Self {
+    pub fn new(path: String, name: String) -> Self {
         let (tx, rx) = mpsc::channel();
         let (error_tx, error_rx) = mpsc::channel();
         Self {
-            command: Arc::new(Mutex::new(SubProcess::new(path.clone(), tx, error_tx))),
+            command: Arc::new(Mutex::new(SubProcess::new(
+                path.clone(),
+                name.clone(),
+                tx,
+                error_tx,
+            ))),
             rx,
             error_rx,
             output: RefCell::new(Vec::default()),
             error_output: RefCell::new(Vec::default()),
-            name: path,
+            path,
+            name,
             handle: None,
         }
     }

@@ -8,7 +8,7 @@ pub struct Config {
     pub valid: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ConfigValues {
     pub locations: Locations,
 }
@@ -16,7 +16,9 @@ pub struct ConfigValues {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Locations {
     pub ft_ping_dir: String,
+    pub ft_ping_name: String,
     pub ping_dir: String,
+    pub ping_name: String,
     pub test_conf_path: String,
 }
 
@@ -34,6 +36,11 @@ impl ConfigExtractor {
             || !Path::new(conf_values.locations.test_conf_path.as_str()).exists()
         {
             eprintln!("Wrong paths in conf.toml");
+            conf.valid = false;
+        } else if !conf_values.locations.ft_ping_dir.ends_with('/')
+            || !conf_values.locations.ping_dir.ends_with('/')
+        {
+            eprintln!("Directory paths must end with '/'. Change conf.toml");
             conf.valid = false;
         } else {
             conf.valid = true;

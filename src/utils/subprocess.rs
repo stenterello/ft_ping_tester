@@ -9,15 +9,17 @@ use std::thread;
 #[derive(Debug)]
 pub struct SubProcess {
     path: String,
+    name: String,
     tx: Sender<String>,
     error_tx: Sender<String>,
     pub exit: RefCell<(Option<i32>, Option<String>)>,
 }
 
 impl SubProcess {
-    pub fn new(path: String, tx: Sender<String>, error_tx: Sender<String>) -> Self {
+    pub fn new(path: String, name: String, tx: Sender<String>, error_tx: Sender<String>) -> Self {
         SubProcess {
             path,
+            name,
             tx,
             error_tx,
             exit: RefCell::new((None, None)),
@@ -35,7 +37,7 @@ impl SubProcess {
 
     pub fn start(&mut self, args: Vec<String>) -> Result<()> {
         let mut stat = self.exit.borrow_mut();
-        let mut child: Child = match Command::new(self.path.clone())
+        let mut child: Child = match Command::new(self.path.clone() + self.name.clone().as_str())
             .args(&args)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())

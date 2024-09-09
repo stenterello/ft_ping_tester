@@ -23,7 +23,7 @@ pub struct RecompilingNotice {
 impl RecompilingNotice {
     pub fn new(path: String) -> Self {
         RecompilingNotice {
-            thread: Thread::new("make".into()),
+            thread: Thread::new("".into(), "make".into()),
             location: path,
             vertical_scroll: usize::default(),
             widget_height: RefCell::new(usize::default()),

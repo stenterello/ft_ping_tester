@@ -41,8 +41,11 @@ impl TuiWidget for ErrorHandling {
 impl ErrorHandling {
     pub fn new(locations: Locations, tests: Value) -> Self {
         ErrorHandling {
-            ft_ping_output_viewer: OutputViewer::new(&locations.ft_ping_dir),
-            ping_output_viewer: OutputViewer::new(&locations.ping_dir),
+            ft_ping_output_viewer: OutputViewer::new(
+                &locations.ft_ping_dir,
+                &locations.ft_ping_name,
+            ),
+            ping_output_viewer: OutputViewer::new(&locations.ping_dir, &locations.ping_name),
             message_widget: MessageWidget::default(),
             running: false,
             to_run: true,
@@ -66,12 +69,9 @@ impl ErrorHandling {
             (None, Some(err)) => {
                 return Err(Error::new(
                     ErrorKind::Interrupted,
-                    format!(
-                        "Error: {}",
-                        err,
-                    ),
+                    format!("Error: {}", err,),
                 ));
-            },
+            }
             _ => {}
         }
 
