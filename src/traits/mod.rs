@@ -1,1 +1,2 @@
-pub mod tui_widget_trait;
+pub mod comparer;
+pub mod tui_widget;

@@ -1,4 +1,4 @@
-use crate::traits::tui_widget_trait::TuiWidget;
+use crate::traits::tui_widget::TuiWidget;
 use crate::tui::Tui;
 use crate::utils::config_extractor::{ConfigExtractor, ConfigValues};
 use crate::utils::test_config_extractor::TestConfigExtractor;

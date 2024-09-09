@@ -3,7 +3,7 @@ mod intro_widget;
 mod recompiling_notice;
 
 use crate::app::app::State;
-use crate::traits::tui_widget_trait::TuiWidget;
+use crate::traits::tui_widget::TuiWidget;
 use crate::widgets::list_widget::ListWidget;
 use info_widget::InfoWidget;
 use intro_widget::IntroWidget;

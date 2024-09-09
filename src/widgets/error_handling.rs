@@ -6,8 +6,8 @@ use ratatui::{
 use serde_json::Value;
 use std::io::{Error, ErrorKind, Result};
 
-use crate::app::comparer::Comparer;
-use crate::traits::tui_widget_trait::TuiWidget;
+use crate::traits::comparer::Comparer;
+use crate::traits::tui_widget::TuiWidget;
 use crate::utils::config_extractor::Locations;
 use crate::widgets::message_widget::MessageWidget;
 use crate::widgets::output_viewer::OutputViewer;
@@ -41,6 +41,8 @@ impl<'a> TuiWidget for ErrorHandling<'a> {
         };
     }
 }
+
+impl<'a> Comparer for ErrorHandling<'a> {}
 
 impl<'a> ErrorHandling<'a> {
     pub fn new(locations: Locations, tests: Value) -> Self {
@@ -137,45 +139,27 @@ impl<'a> ErrorHandling<'a> {
         let mut ft_ping_text = self.ft_ping_output_viewer.get_output();
         let ping_text = self.ping_output_viewer.get_output();
 
-        if ft_ping_text.len() > 0 || ping_text.len() > 0 {
-            // let mut file = OpenOptions::new()
-            //     .write(true)
-            //     .append(true)
-            //     .open("ciao.txt")
-            //     .unwrap();
+        match ErrorHandling::compare_output(&mut ft_ping_text, &ping_text) {
+            (_, None) => {
+                let mut ft_ping_error_text = self.ft_ping_output_viewer.get_error_output();
+                let ping_error_text = self.ping_output_viewer.get_error_output();
 
-            // if let Err(e) = writeln!(file, "ft_ping_len {}, ping_len {}", ft_ping_text.len(), ping_text.len()) {
-            //     eprintln!("Couldn't write to file: {}", e);
-            // }
-            if !Comparer::compare_output(&mut ft_ping_text, &ping_text) {
-                self.ft_ping_output_viewer
-                    .set_text_to_display(vec!["Error".into()].into());
-            } else {
-                self.ft_ping_output_viewer
-                    .set_text_to_display(vec![ft_ping_text.join("\n").into()].into());
-            }
-        } else {
-            let mut ft_ping_error_text = self.ft_ping_output_viewer.get_error_output();
-            let ping_error_text = self.ping_output_viewer.get_error_output();
-
-            if ft_ping_error_text.len() > 0 || ping_error_text.len() > 0 {
-                // let mut file = OpenOptions::new()
-                //     .write(true)
-                //     .append(true)
-                //     .open("ciao.txt")
-                //     .unwrap();
-
-                // if let Err(e) = writeln!(file, "ft_ping_len {}, ping_len {}", ft_ping_text.len(), ping_text.len()) {
-                //     eprintln!("Couldn't write to file: {}", e);
-                // }
-                if !Comparer::compare_output(&mut ft_ping_error_text, &ping_error_text) {
-                    self.ping_output_viewer.set_text_to_display(vec!["Error".into()].into());
-                } else {
-                    self.ping_output_viewer
-                        .set_text_to_display(vec![ping_error_text.join("\n").into()].into());
+                match ErrorHandling::compare_output(&mut ft_ping_error_text, &ping_error_text) {
+                    (true, Some(vec)) => {
+                        self.ft_ping_output_viewer.set_text_to_display(vec.clone());
+                        self.ping_output_viewer.set_text_to_display(vec);
+                    }
+                    (false, Some(vec)) => {}
+                    _ => {}
                 }
             }
-        }
+            (true, Some(vec)) => {
+                self.ft_ping_output_viewer.set_text_to_display(vec.clone());
+                self.ping_output_viewer.set_text_to_display(vec);
+            }
+            (false, Some(vec)) => {}
+            _ => {}
+        };
 
         frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
         frame.render_widget(&self.ping_output_viewer, upper_right_area);
