@@ -1,8 +1,8 @@
-Errors to check:  
+Errors to check:
     - [ ] wrong destination address
 
 
 check the build prints about configuring and building other executables
 add commands description in app
 widgets which scroll all the way down when text is higher than widget
-change conf.toml file to present dir_path or executables_path
+add check on exit code of ping and ft_ping

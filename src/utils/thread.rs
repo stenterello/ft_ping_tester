@@ -12,7 +12,6 @@ pub struct Thread {
     error_rx: Receiver<String>,
     output: RefCell<Vec<String>>,
     error_output: RefCell<Vec<String>>,
-    path: String,
     pub name: String,
     handle: Option<JoinHandle<Result<()>>>,
 }
@@ -32,7 +31,6 @@ impl Thread {
             error_rx,
             output: RefCell::new(Vec::default()),
             error_output: RefCell::new(Vec::default()),
-            path,
             name,
             handle: None,
         }

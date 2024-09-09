@@ -6,6 +6,7 @@ use ratatui::{
 use serde_json::Value;
 use std::io::{Error, ErrorKind, Result};
 
+use crate::app::comparer::Comparer;
 use crate::traits::tui_widget_trait::TuiWidget;
 use crate::utils::config_extractor::Locations;
 use crate::widgets::message_widget::MessageWidget;
@@ -30,7 +31,6 @@ pub struct ErrorHandling {
 impl TuiWidget for ErrorHandling {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match key_event.code {
-            KeyCode::Char('q') => {}
             KeyCode::Up => {}
             KeyCode::Down => {}
             KeyCode::Enter => {}
@@ -127,6 +127,33 @@ impl ErrorHandling {
         let [upper_left_area, upper_right_area] =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .areas(upper_area);
+
+        let mut ft_ping_text = self.ft_ping_output_viewer.get_output();
+        let mut ft_ping_error_text = self.ft_ping_output_viewer.get_error_output();
+        let ping_text = self.ping_output_viewer.get_output();
+        let ping_error_text = self.ping_output_viewer.get_error_output();
+
+        if !Comparer::compare_output(&mut ft_ping_text, &ping_text) {
+            self.ft_ping_output_viewer
+                .set_text_to_display("Error".into());
+        } else {
+            self.ft_ping_output_viewer
+                .set_text_to_display(if ft_ping_text.len() > 0 {
+                    ft_ping_text.join("\n")
+                } else {
+                    ft_ping_error_text.join("\n")
+                });
+        }
+        if !Comparer::compare_output(&mut ft_ping_error_text, &ping_error_text) {
+            self.ping_output_viewer.set_text_to_display("Error".into());
+        } else {
+            self.ping_output_viewer
+                .set_text_to_display(if ping_text.len() > 0 {
+                    ping_text.join("\n")
+                } else {
+                    ping_error_text.join("\n")
+                });
+        }
 
         frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
         frame.render_widget(&self.ping_output_viewer, upper_right_area);
