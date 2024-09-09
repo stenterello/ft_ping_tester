@@ -24,6 +24,7 @@ pub struct ErrorHandling {
     running: bool,
     to_run: bool,
     tests: Value,
+    tests_idx: usize,
 }
 
 impl TuiWidget for ErrorHandling {
@@ -50,13 +51,25 @@ impl ErrorHandling {
             running: false,
             to_run: true,
             tests,
+            tests_idx: usize::default(),
         }
     }
 
     pub fn run_processes(&mut self) {
-        self.ft_ping_output_viewer.start_process();
-        self.ping_output_viewer.start_process();
-        self.running = true;
+        match self.tests.get(self.tests_idx) {
+            Some(test) => {
+                let mut str_vector: Vec<String> = Vec::default();
+                for val in test.clone().as_array().unwrap() {
+                    str_vector.push(String::from(val.as_str().unwrap()));
+                }
+                self.message_widget.set_arguments(str_vector.clone());
+                self.ft_ping_output_viewer.start_process(str_vector.clone());
+                self.ping_output_viewer.start_process(str_vector);
+                self.running = true;
+                self.tests_idx += 1;
+            }
+            None => {}
+        }
     }
 
     fn check_thread_exit_status(&mut self, output_viewer: Viewer) -> Result<()> {
@@ -69,7 +82,7 @@ impl ErrorHandling {
             (None, Some(err)) => {
                 return Err(Error::new(
                     ErrorKind::Interrupted,
-                    format!("Error: {}", err,),
+                    format!("Error: {}", err),
                 ));
             }
             _ => {}
@@ -107,7 +120,7 @@ impl ErrorHandling {
             }
         }
 
-        let [upper_area, _] =
+        let [upper_area, lower_area] =
             Layout::vertical([Constraint::Percentage(70), Constraint::Percentage(30)])
                 .areas(frame.size());
 
@@ -117,6 +130,7 @@ impl ErrorHandling {
 
         frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
         frame.render_widget(&self.ping_output_viewer, upper_right_area);
+        frame.render_widget(&self.message_widget, lower_area);
         Ok(())
     }
 }

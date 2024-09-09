@@ -22,8 +22,8 @@ impl OutputViewer {
         }
     }
 
-    pub fn start_process(&mut self) -> () {
-        self.thread.start(vec!["localhost".into()]);
+    pub fn start_process(&mut self, args: Vec<String>) -> () {
+        self.thread.start(args);
     }
 
     pub fn get_exit_status(&self) -> (Option<i32>, Option<String>) {
@@ -54,7 +54,10 @@ impl Widget for &OutputViewer {
         let mut t: String = String::from(" ");
         t.push_str((String::from(self.thread.name.clone()) + " ").as_str());
         let title = Title::from(t.as_str().bold().yellow());
-        let text = self.thread.get_output().join("\n");
+        let text = match self.thread.get_output().len() {
+            0 => self.thread.get_error_output().join("\n"),
+            _ => self.thread.get_output().join("\n"),
+        };
         let block = Block::bordered()
             .title(title.alignment(Alignment::Center))
             .style(Style::default().fg(Color::Yellow))
