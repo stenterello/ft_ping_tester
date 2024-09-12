@@ -42,7 +42,11 @@ impl TuiWidget for ErrorHandling {
     }
 }
 
-impl Comparer for ErrorHandling {}
+impl Comparer for ErrorHandling {
+    fn set_errors(&mut self, val: bool) -> () {
+        self.message_widget.set_errors(val);
+    }
+}
 
 impl ErrorHandling {
     pub fn new(locations: Locations, tests: Value) -> Self {
@@ -144,11 +148,9 @@ impl ErrorHandling {
         );
 
         let ft_ping_formatted =
-            TextType::Formatted(ErrorHandling::compare_output(&mut ft_ping_text, &ping_text));
-        let ft_ping_error_formatted = TextType::Formatted(ErrorHandling::compare_output(
-            &mut ft_ping_error_text,
-            &ping_error_text,
-        ));
+            TextType::Formatted(self.compare_output(&mut ft_ping_text, &ping_text));
+        let ft_ping_error_formatted =
+            TextType::Formatted(self.compare_output(&mut ft_ping_error_text, &ping_error_text));
 
         self.ft_ping_output_viewer
             .set_text_to_display(ft_ping_formatted);

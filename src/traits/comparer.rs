@@ -1,7 +1,10 @@
 use itertools::{EitherOrBoth::*, Itertools};
 
 pub trait Comparer {
+    fn set_errors(&mut self, val: bool) -> ();
+
     fn compare_output(
+        &mut self,
         ft_ping_output: &mut Vec<String>,
         ping_output: &Vec<String>,
     ) -> Vec<Vec<(bool, u8)>> {
@@ -31,7 +34,11 @@ pub trait Comparer {
                         let nc = ping_iter.next();
                         match nc {
                             Some(nc) => {
-                                ret[ret_index].push((*c == *nc, *c));
+                                let eq = *c == *nc;
+                                if !eq {
+                                    self.set_errors(true);
+                                }
+                                ret[ret_index].push((eq, *c));
                             }
                             None => ret[ret_index].push((false, *c)),
                         }
@@ -45,6 +52,7 @@ pub trait Comparer {
                         }
 
                         ret[ret_index].push((false, *c));
+                        self.set_errors(true);
                     });
                 }
                 Right(_) => {}

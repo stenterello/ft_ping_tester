@@ -2,6 +2,7 @@ use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
     style::{Color, Style, Stylize},
+    text::{Line, Span},
     widgets::{
         block::{Block, BorderType, Title},
         Paragraph, Widget, Wrap,
@@ -12,6 +13,7 @@ use ratatui::{
 pub struct MessageWidget {
     running_test: bool,
     arguments: Vec<String>,
+    has_errors: bool,
 }
 
 impl MessageWidget {
@@ -19,6 +21,7 @@ impl MessageWidget {
         MessageWidget {
             running_test: false,
             arguments: Vec::default(),
+            has_errors: false,
         }
     }
 
@@ -28,6 +31,10 @@ impl MessageWidget {
 
     pub fn set_arguments(&mut self, args: Vec<String>) -> () {
         self.arguments = args;
+    }
+
+    pub fn set_errors(&mut self, val: bool) -> () {
+        self.has_errors = val;
     }
 }
 
@@ -39,22 +46,33 @@ impl Widget for &MessageWidget {
             .style(Style::default().fg(Color::Yellow))
             .border_type(BorderType::Rounded);
 
-        let message = if self.running_test {
-            let mut tmp = String::from("Running {ping}");
+        let message: Vec<Line> = {
+            let mut ret: Vec<Line> = Vec::default();
+            let mut tmp = Line::from(format!(
+                "{} {{ping}}",
+                if self.running_test {
+                    "Running"
+                } else {
+                    "Last run"
+                }
+            ));
             for arg in &self.arguments {
-                tmp.push_str(" ");
-                tmp.push_str(arg.as_str());
+                tmp.push_span(Span::from(" "));
+                tmp.push_span(Span::from(arg.as_str()));
             }
-            tmp.push_str("...");
-            tmp
-        } else {
-            let mut tmp = String::from("Last run: |{ping}");
-            for arg in &self.arguments {
-                tmp.push_str(" ");
-                tmp.push_str(arg.as_str());
+            tmp.push_span(Span::from("..."));
+            tmp.push_span(Span::from("|."));
+
+            ret.push(tmp);
+            ret.push(Line::default());
+
+            if !self.running_test {
+                ret.push(Line::from(Span::from(format!(
+                    "Test Result: {}",
+                    if self.has_errors { "🔴" } else { "🟢" }
+                ))));
             }
-            tmp.push_str("|.");
-            tmp
+            ret
         };
 
         Paragraph::new(message)

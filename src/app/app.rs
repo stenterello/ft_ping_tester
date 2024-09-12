@@ -15,7 +15,7 @@ use std::{
 
 const CONF_FILE: &str = "./conf.toml";
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub enum State {
     #[default]
     Welcome,
@@ -91,6 +91,8 @@ impl App {
             KeyCode::Char('q') => {
                 if self.welcome_widget.recompiling {
                     self.welcome_widget.recompile(false);
+                } else if self.state == State::ErrorHandling {
+                    self.state = State::Welcome;
                 } else {
                     self.exit();
                 }
