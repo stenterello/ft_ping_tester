@@ -136,33 +136,51 @@ impl<'a> ErrorHandling<'a> {
         self.ft_ping_output_viewer.clear_text_to_display();
         self.ping_output_viewer.clear_text_to_display();
 
-        let mut ft_ping_text = self.ft_ping_output_viewer.get_output();
-        let ping_text = self.ping_output_viewer.get_output();
+        let (mut ft_ping_text, ping_text): (Vec<String>, Vec<String>) = (
+            self.ft_ping_output_viewer.get_output(),
+            self.ping_output_viewer.get_output(),
+        );
 
-        match ErrorHandling::compare_output(&mut ft_ping_text, &ping_text) {
-            (_, None) => {
-                let mut ft_ping_error_text = self.ft_ping_output_viewer.get_error_output();
-                let ping_error_text = self.ping_output_viewer.get_error_output();
+        let (mut ft_ping_error_text, ping_error_text): (Vec<String>, Vec<String>) = (
+            self.ft_ping_output_viewer.get_error_output(),
+            self.ping_output_viewer.get_error_output(),
+        );
 
-                match ErrorHandling::compare_output(&mut ft_ping_error_text, &ping_error_text) {
-                    (true, Some(vec)) => {
-                        self.ft_ping_output_viewer.set_text_to_display(vec.0);
-                        self.ping_output_viewer.set_text_to_display(vec.1);
-                    }
-                    (false, Some(vec)) => {}
-                    _ => {}
-                }
-            }
-            (true, Some(vec)) => {
-                self.ft_ping_output_viewer.set_text_to_display(vec.0);
-                self.ping_output_viewer.set_text_to_display(vec.1);
-            }
-            (false, Some(vec)) => {}
-            _ => {}
-        };
+        ErrorHandling::compare_output(
+            (&mut ft_ping_text, &ping_text),
+            (&mut ft_ping_error_text, &ping_error_text),
+            (
+                &mut self.ft_ping_output_viewer,
+                &mut self.ping_output_viewer,
+            ),
+            (upper_left_area, upper_right_area),
+            frame,
+        );
 
-        frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
-        frame.render_widget(&self.ping_output_viewer, upper_right_area);
+        // match ErrorHandling::compare_output((&mut ft_ping_text, &ping_text)) {
+        //     (_, None) => {
+        //         let mut ft_ping_error_text = self.ft_ping_output_viewer.get_error_output();
+        //         let ping_error_text = self.ping_output_viewer.get_error_output();
+
+        //         match ErrorHandling::compare_output(&mut ft_ping_error_text, &ping_error_text) {
+        //             (true, Some(vec)) => {
+        //                 self.ft_ping_output_viewer.set_text_to_display(vec.0);
+        //                 self.ping_output_viewer.set_text_to_display(vec.1);
+        //             }
+        //             (false, Some(vec)) => {}
+        //             _ => {}
+        //         }
+        //     }
+        //     (true, Some(vec)) => {
+        //         self.ft_ping_output_viewer.set_text_to_display(vec.0);
+        //         self.ping_output_viewer.set_text_to_display(vec.1);
+        //     }
+        //     (false, Some(vec)) => {}
+        //     _ => {}
+        // };
+
+        // frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
+        // frame.render_widget(&self.ping_output_viewer, upper_right_area);
         frame.render_widget(&self.message_widget, lower_area);
         Ok(())
     }

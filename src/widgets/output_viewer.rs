@@ -1,8 +1,12 @@
 use ratatui::{
-    buffer::Buffer, layout::{Alignment, Rect}, style::{Color, Style, Stylize}, text::{Line, Span}, widgets::{
+    buffer::Buffer,
+    layout::{Alignment, Rect},
+    style::{Color, Style, Stylize},
+    text::{Line, Span},
+    widgets::{
         block::{BorderType, Title},
         Block, Paragraph, Widget, Wrap,
-    }
+    },
 };
 
 use crate::utils::thread::Thread;
@@ -61,6 +65,23 @@ impl<'a> OutputViewer<'a> {
 }
 
 impl<'a> Widget for &OutputViewer<'a> {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        let mut t: String = String::from(" ");
+        t.push_str((String::from(self.thread.name.clone()) + " ").as_str());
+        let title = Title::from(t.as_str().bold().yellow());
+        let block = Block::bordered()
+            .title(title.alignment(Alignment::Center))
+            .style(Style::default().fg(Color::Yellow))
+            .border_type(BorderType::Rounded);
+        Paragraph::new(self.to_display.clone())
+            .block(block)
+            .wrap(Wrap { trim: true })
+            .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
+            .render(area, buf);
+    }
+}
+
+impl<'a> Widget for &mut OutputViewer<'a> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut t: String = String::from(" ");
         t.push_str((String::from(self.thread.name.clone()) + " ").as_str());
