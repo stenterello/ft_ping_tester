@@ -1,42 +1,60 @@
-use itertools::{
-    EitherOrBoth::{self, *},
-    Itertools,
-};
-use ratatui::{style::Color, text::Line};
-
-fn format_lines<'a>(
-    ft_ping_output: &Vec<String>,
-    ping_output: &Vec<String>,
-) -> (Vec<Line<'a>>, Vec<Line<'a>>) {
-    let i = ft_ping_output.iter().zip_longest(ping_output.iter());
-    let mut ft_ping_vec: Vec<Line<'a>> = vec![];
-    let ping_vec: Vec<Line<'a>> = vec![];
-    for couple in i {
-        match couple {
-            Both(l, r) => {}
-            Left(l) => {
-                // ft_ping_vec.push();
-            }
-            Right(r) => {}
-        }
-    }
-    (Vec::default(), Vec::default())
-}
+use itertools::{EitherOrBoth::*, Itertools};
 
 pub trait Comparer {
-    fn compare_output<'a>(
+    fn compare_output(
         ft_ping_output: &mut Vec<String>,
         ping_output: &Vec<String>,
-    ) -> (bool, Option<(Vec<Line<'a>>, Vec<Line<'a>>)>) {
+    ) -> Vec<Vec<(bool, char)>> {
         if ft_ping_output.is_empty() && ping_output.is_empty() {
-            return (false, None);
+            return vec![vec![(true, char::default())]];
         }
+        let mut translated: Vec<String> = vec![];
+        for string in ft_ping_output.iter() {
+            translated.push(string.replace("ft_ping", "ping"));
+        }
+        let v = translated.iter().zip_longest(ping_output.iter());
+        let mut ft_ping_ret: Vec<Vec<(bool, char)>> = Vec::default();
+        let mut index: usize = 0;
 
-        let mut v = ft_ping_output.iter_mut().zip_longest(ping_output.iter());
-        let ret = v.all(|t: EitherOrBoth<&mut String, &String>| match t {
-            Both(s1, s2) => s1.replace("ft_ping", "ping").eq(s2),
-            _ => false,
-        });
-        (ret, Some(format_lines(ft_ping_output, ping_output)))
+        for string_couple in v {
+            match string_couple {
+                Both(l, r) => {
+                    let v2 = l.chars().zip_longest(r.chars());
+                    for char_couple in v2 {
+                        match char_couple {
+                            Both(c1, c2) => match ft_ping_ret.get_mut(index) {
+                                Some(s) => s.push(((c1 == c2), c1)),
+                                None => {
+                                    ft_ping_ret.push(Vec::default());
+                                    ft_ping_ret[index].push(((c1 == c2), c1));
+                                }
+                            },
+                            Left(c1) => match ft_ping_ret.get_mut(index) {
+                                Some(s) => s.push((false, c1)),
+                                None => {
+                                    ft_ping_ret.push(Vec::default());
+                                    ft_ping_ret[index].push((false, c1));
+                                }
+                            },
+                            Right(_) => {}
+                        }
+                    }
+                }
+                Left(l) => {
+                    for c in l.chars() {
+                        match ft_ping_ret.get_mut(index) {
+                            Some(s) => s.push((false, c)),
+                            None => {
+                                ft_ping_ret.push(Vec::default());
+                                ft_ping_ret[index].push((false, c));
+                            }
+                        }
+                    }
+                }
+                Right(_) => {}
+            }
+            index += 1;
+        }
+        ft_ping_ret
     }
 }

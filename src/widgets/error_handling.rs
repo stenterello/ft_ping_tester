@@ -10,7 +10,7 @@ use crate::traits::comparer::Comparer;
 use crate::traits::tui_widget::TuiWidget;
 use crate::utils::config_extractor::Locations;
 use crate::widgets::message_widget::MessageWidget;
-use crate::widgets::output_viewer::OutputViewer;
+use crate::widgets::output_viewer::{OutputViewer, TextType};
 
 // use std::fs::OpenOptions;
 // use std::io::prelude::*;
@@ -21,9 +21,9 @@ enum Viewer {
 }
 
 #[derive(Debug)]
-pub struct ErrorHandling<'a> {
-    ft_ping_output_viewer: OutputViewer<'a>,
-    ping_output_viewer: OutputViewer<'a>,
+pub struct ErrorHandling {
+    ft_ping_output_viewer: OutputViewer,
+    ping_output_viewer: OutputViewer,
     message_widget: MessageWidget,
     running: bool,
     to_run: bool,
@@ -31,7 +31,7 @@ pub struct ErrorHandling<'a> {
     tests_idx: usize,
 }
 
-impl<'a> TuiWidget for ErrorHandling<'a> {
+impl TuiWidget for ErrorHandling {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match key_event.code {
             KeyCode::Up => {}
@@ -42,9 +42,9 @@ impl<'a> TuiWidget for ErrorHandling<'a> {
     }
 }
 
-impl<'a> Comparer for ErrorHandling<'a> {}
+impl Comparer for ErrorHandling {}
 
-impl<'a> ErrorHandling<'a> {
+impl ErrorHandling {
     pub fn new(locations: Locations, tests: Value) -> Self {
         ErrorHandling {
             ft_ping_output_viewer: OutputViewer::new(
@@ -133,9 +133,6 @@ impl<'a> ErrorHandling<'a> {
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .areas(upper_area);
 
-        self.ft_ping_output_viewer.clear_text_to_display();
-        self.ping_output_viewer.clear_text_to_display();
-
         let (mut ft_ping_text, ping_text): (Vec<String>, Vec<String>) = (
             self.ft_ping_output_viewer.get_output(),
             self.ping_output_viewer.get_output(),
@@ -146,42 +143,26 @@ impl<'a> ErrorHandling<'a> {
             self.ping_output_viewer.get_error_output(),
         );
 
-        ErrorHandling::compare_output(
-            (&mut ft_ping_text, &ping_text),
-            (&mut ft_ping_error_text, &ping_error_text),
-            (
-                &mut self.ft_ping_output_viewer,
-                &mut self.ping_output_viewer,
-            ),
-            (upper_left_area, upper_right_area),
-            frame,
-        );
+        let ft_ping_formatted =
+            TextType::Formatted(ErrorHandling::compare_output(&mut ft_ping_text, &ping_text));
+        let ft_ping_error_formatted = TextType::Formatted(ErrorHandling::compare_output(
+            &mut ft_ping_error_text,
+            &ping_error_text,
+        ));
 
-        // match ErrorHandling::compare_output((&mut ft_ping_text, &ping_text)) {
-        //     (_, None) => {
-        //         let mut ft_ping_error_text = self.ft_ping_output_viewer.get_error_output();
-        //         let ping_error_text = self.ping_output_viewer.get_error_output();
+        self.ft_ping_output_viewer
+            .set_text_to_display(ft_ping_formatted);
+        self.ping_output_viewer
+            .set_text_to_display(TextType::Standard(ping_text));
+        self.ft_ping_output_viewer
+            .set_error_to_display(ft_ping_error_formatted);
+        self.ping_output_viewer
+            .set_error_to_display(TextType::Standard(ping_error_text));
 
-        //         match ErrorHandling::compare_output(&mut ft_ping_error_text, &ping_error_text) {
-        //             (true, Some(vec)) => {
-        //                 self.ft_ping_output_viewer.set_text_to_display(vec.0);
-        //                 self.ping_output_viewer.set_text_to_display(vec.1);
-        //             }
-        //             (false, Some(vec)) => {}
-        //             _ => {}
-        //         }
-        //     }
-        //     (true, Some(vec)) => {
-        //         self.ft_ping_output_viewer.set_text_to_display(vec.0);
-        //         self.ping_output_viewer.set_text_to_display(vec.1);
-        //     }
-        //     (false, Some(vec)) => {}
-        //     _ => {}
-        // };
-
-        // frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
-        // frame.render_widget(&self.ping_output_viewer, upper_right_area);
+        frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
+        frame.render_widget(&self.ping_output_viewer, upper_right_area);
         frame.render_widget(&self.message_widget, lower_area);
+
         Ok(())
     }
 }
