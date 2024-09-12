@@ -60,7 +60,6 @@ impl Widget for &MessageWidget {
                 tmp.push_span(Span::from(" "));
                 tmp.push_span(Span::from(arg.as_str()));
             }
-            tmp.push_span(Span::from("..."));
             tmp.push_span(Span::from("|."));
 
             ret.push(tmp);

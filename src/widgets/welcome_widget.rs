@@ -112,7 +112,7 @@ impl WelcomeWidget {
     pub fn recompile(&mut self, val: bool) {
         self.recompiling = val;
         if val {
-            self.recompiling_notice.clean_output();
+            self.recompiling_notice.clear_output();
             self.recompiling_notice.start();
         }
     }

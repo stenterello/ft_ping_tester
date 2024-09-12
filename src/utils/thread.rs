@@ -86,7 +86,8 @@ impl Thread {
         }
     }
 
-    pub fn clean_output(&mut self) {
+    pub fn clear_buffers(&mut self) {
         self.output.borrow_mut().clear();
+        self.error_output.borrow_mut().clear();
     }
 }

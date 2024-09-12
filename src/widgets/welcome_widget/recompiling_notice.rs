@@ -48,8 +48,8 @@ impl RecompilingNotice {
         }
     }
 
-    pub fn clean_output(&mut self) {
-        self.thread.clean_output();
+    pub fn clear_output(&mut self) {
+        self.thread.clear_buffers();
     }
 }
 

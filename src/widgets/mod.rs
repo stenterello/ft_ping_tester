@@ -1,3 +1,4 @@
+pub mod commands_widget;
 pub mod error_handling;
 pub mod list_widget;
 pub mod message_widget;

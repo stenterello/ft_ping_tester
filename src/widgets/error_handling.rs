@@ -9,6 +9,7 @@ use std::io::{Error, ErrorKind, Result};
 use crate::traits::comparer::Comparer;
 use crate::traits::tui_widget::TuiWidget;
 use crate::utils::config_extractor::Locations;
+use crate::widgets::commands_widget::CommandsWidget;
 use crate::widgets::message_widget::MessageWidget;
 use crate::widgets::output_viewer::{OutputViewer, TextType};
 
@@ -29,6 +30,7 @@ pub struct ErrorHandling {
     to_run: bool,
     tests: Value,
     tests_idx: usize,
+    commands_widget: CommandsWidget,
 }
 
 impl TuiWidget for ErrorHandling {
@@ -37,6 +39,13 @@ impl TuiWidget for ErrorHandling {
             KeyCode::Up => {}
             KeyCode::Down => {}
             KeyCode::Enter => {}
+            KeyCode::Char(' ') => {
+                if !self.running && !self.to_run {
+                    self.to_run = true;
+                    self.ft_ping_output_viewer.clear_buffers();
+                    self.ping_output_viewer.clear_buffers();
+                }
+            }
             _ => {}
         };
     }
@@ -61,6 +70,7 @@ impl ErrorHandling {
             to_run: true,
             tests,
             tests_idx: usize::default(),
+            commands_widget: CommandsWidget::default(),
         }
     }
 
@@ -133,6 +143,10 @@ impl ErrorHandling {
             Layout::vertical([Constraint::Percentage(70), Constraint::Percentage(30)])
                 .areas(frame.size());
 
+        let [status_area, commands_area] =
+            Layout::vertical([Constraint::Percentage(90), Constraint::Percentage(10)])
+                .areas(lower_area);
+
         let [upper_left_area, upper_right_area] =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .areas(upper_area);
@@ -163,7 +177,8 @@ impl ErrorHandling {
 
         frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
         frame.render_widget(&self.ping_output_viewer, upper_right_area);
-        frame.render_widget(&self.message_widget, lower_area);
+        frame.render_widget(&self.message_widget, status_area);
+        frame.render_widget(&self.commands_widget, commands_area);
 
         Ok(())
     }

@@ -70,6 +70,12 @@ impl OutputViewer {
     pub fn set_error_to_display(&mut self, display: TextType) -> () {
         self.error_to_display = display;
     }
+
+    pub fn clear_buffers(&mut self) {
+        self.text_to_display = TextType::Standard(Vec::default());
+        self.error_to_display = TextType::Standard(Vec::default());
+        self.thread.clear_buffers()
+    }
 }
 
 impl Widget for &OutputViewer {
