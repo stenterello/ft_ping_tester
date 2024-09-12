@@ -14,7 +14,7 @@ use crate::utils::thread::Thread;
 #[derive(Debug, Clone)]
 pub enum TextType {
     Standard(Vec<String>),
-    Formatted(Vec<Vec<(bool, char)>>),
+    Formatted(Vec<Vec<(bool, u8)>>),
 }
 
 #[derive(Debug)]
@@ -104,9 +104,16 @@ impl Widget for &OutputViewer {
                     let mut spans: Vec<Span> = vec![];
                     for to_format in string {
                         match to_format {
-                            (true, c) => spans.push(Span::styled(c.to_string(), Style::default())),
+                            (true, c) => spans.push(Span::styled(
+                                char::from_u32(*c as u32).unwrap().to_string(),
+                                Style::default(),
+                            )),
                             (false, c) => spans.push(
-                                Span::styled(c.to_string(), Style::default().fg(Color::Red)).bold(),
+                                Span::styled(
+                                    char::from_u32(*c as u32).unwrap().to_string(),
+                                    Style::default().fg(Color::Red),
+                                )
+                                .bold(),
                             ),
                         }
                     }
@@ -139,9 +146,14 @@ impl Widget for &OutputViewer {
                     let mut spans: Vec<Span> = vec![];
                     for to_format in string {
                         match to_format {
-                            (true, c) => spans.push(Span::styled(c.to_string(), Style::default())),
-                            (false, c) => spans
-                                .push(Span::styled(c.to_string(), Style::default().fg(Color::Red))),
+                            (true, c) => spans.push(Span::styled(
+                                char::from_u32(*c as u32).unwrap().to_string(),
+                                Style::default(),
+                            )),
+                            (false, c) => spans.push(Span::styled(
+                                char::from_u32(*c as u32).unwrap().to_string(),
+                                Style::default().fg(Color::Red),
+                            )),
                         }
                     }
                     lines.push(Line::from(spans));
