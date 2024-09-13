@@ -15,6 +15,8 @@ The tester is divided into three parts, each one focusing on a particular aspect
     ```
     setvbuf()...
     ```
+- Since it seems like some versions of argp_parse substitute "'" with "`" error prints, I inserted a replace function call on the output received from the subprocess. It is not elegant nor right, but still could not find solution to this. Keep in mind if you experience some problems possibly linked to this.
+
 - Actually supported options:
     -
 
