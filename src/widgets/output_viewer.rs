@@ -87,7 +87,7 @@ impl OutputViewer {
                     if c.1.content.as_bytes()[0] == pattern[idx] {
                         idx += 1;
                         if idx == pattern.len() {
-                            saved_idx.push(c.0 - (pattern.len() - 1) + (saved_idx.len() * 3));
+                            saved_idx.push(c.0 - (pattern.len() - 1));
                             idx = 0;
                         }
                     } else {
@@ -98,10 +98,24 @@ impl OutputViewer {
             }
         }
 
-        for index in saved_idx {
-            spans.insert(index, Span::from("f").white());
-            spans.insert(index + 1, Span::from("t").white());
-            spans.insert(index + 2, Span::from("_").white());
+        for index in saved_idx.iter().rev() {
+            if *index > 2 && index < &spans.len() {
+                if spans.get(index - 1).unwrap().content.as_bytes()[0] == b'_' {
+                    if spans.get(index - 2).unwrap().content.as_bytes()[0] == b't' {
+                        if spans.get(index - 3).unwrap().content.as_bytes()[0] == b'f' {
+
+                        }
+                    }
+                } else {
+                    spans.insert(*index, Span::from("f").yellow());
+                    spans.insert(*index + 1, Span::from("t").yellow());
+                    spans.insert(*index + 2, Span::from("_").yellow());
+                }
+            } else {
+                spans.insert(*index, Span::from("f").yellow());
+                spans.insert(*index + 1, Span::from("t").yellow());
+                spans.insert(*index + 2, Span::from("_").yellow());
+            }
         }
     }
 }
@@ -151,7 +165,7 @@ impl Widget for &OutputViewer {
                             ),
                         }
                     }
-                    // OutputViewer::retranslate(&mut spans);
+                    OutputViewer::retranslate(&mut spans);
                     lines.push(Line::from(spans));
                 }
 

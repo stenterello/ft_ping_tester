@@ -43,8 +43,6 @@ pub trait Comparer {
             translated.push(string.replace("ft_ping", "ping"));
         }
 
-
-
         let mut ret: Vec<Vec<(bool, u8)>> = Vec::default();
         let mut ret_index: usize = 0;
 
