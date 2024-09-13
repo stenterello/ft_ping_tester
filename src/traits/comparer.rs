@@ -1,9 +1,6 @@
 use itertools::{EitherOrBoth::*, Itertools};
 use std::path::Path;
 
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-
 pub trait Comparer {
     fn set_errors(&mut self, val: bool) -> ();
 
@@ -37,34 +34,16 @@ pub trait Comparer {
         ft_ping_output: &mut Vec<String>,
         ping_output: &Vec<String>,
     ) -> Vec<Vec<(bool, u8)>> {
+        self.set_errors(false);
+
         if ft_ping_output.is_empty() && ping_output.is_empty() {
             return vec![vec![(true, u8::default())]];
         }
 
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open("ciao.txt")
-            .unwrap();
-
-        for string in &mut *ft_ping_output {
-            if let Err(e) = writeln!(file, "{}", string) {
-                eprintln!("Couldn't write to file: {}", e);
-            }
-        }
-
-
         let mut translated: Vec<String> = Vec::default();
         for string in ft_ping_output.iter() {
-            // if let Err(e) = writeln!(file, "output: {}", string) {
-                // eprintln!("Couldn't write to file: {}", e);
-            // }
             translated.push(string.replace("ft_ping", "ping").replace("`", "'"));
-            // if let Err(e) = writeln!(file, "translated: {}", translated.last().unwrap()) {
-            //     eprintln!("Couldn't write to file: {}", e);
-            // }
         }
-
 
         let mut ret: Vec<Vec<(bool, u8)>> = Vec::default();
         let mut ret_index: usize = 0;
@@ -104,7 +83,9 @@ pub trait Comparer {
                         self.set_errors(true);
                     });
                 }
-                Right(_) => {}
+                Right(q) => {
+                    self.set_errors(true);
+                }
             }
             ret_index += 1;
         }

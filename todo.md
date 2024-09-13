@@ -15,7 +15,7 @@ use std::io::prelude::*;
 let mut file = OpenOptions::new()
     .write(true)
     .append(true)
-    .open("my-file")
+    .open("ciao.txt")
     .unwrap();
 
 if let Err(e) = writeln!(file, "A new line!") {
