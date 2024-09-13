@@ -14,9 +14,6 @@ use crate::widgets::commands_widget::CommandsWidget;
 use crate::widgets::message_widget::MessageWidget;
 use crate::widgets::output_viewer::{OutputViewer, TextType};
 
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-
 enum Viewer {
     FtPing,
     Ping,

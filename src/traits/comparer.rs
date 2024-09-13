@@ -83,7 +83,7 @@ pub trait Comparer {
                         self.set_errors(true);
                     });
                 }
-                Right(q) => {
+                Right(_) => {
                     self.set_errors(true);
                 }
             }
