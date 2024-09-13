@@ -14,8 +14,8 @@ use crate::widgets::commands_widget::CommandsWidget;
 use crate::widgets::message_widget::MessageWidget;
 use crate::widgets::output_viewer::{OutputViewer, TextType};
 
-// use std::fs::OpenOptions;
-// use std::io::prelude::*;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
 
 enum Viewer {
     FtPing,
@@ -161,15 +161,53 @@ impl ErrorHandling {
             self.ping_output_viewer.get_output(),
         );
 
-        let (mut ft_ping_error_text, ping_error_text): (Vec<String>, Vec<String>) = (
+        let (mut ft_ping_error_text, mut ping_error_text): (Vec<String>, Vec<String>) = (
             self.ft_ping_output_viewer.get_error_output(),
             self.ping_output_viewer.get_error_output(),
         );
 
+        let (mut ft_useful_error_text, ft_unnecessary_path) = ErrorHandling::remove_path(&mut ft_ping_error_text);
+        let (ping_useful_error_text, ping_unnecessary_path) = ErrorHandling::remove_path(&mut ping_error_text);
+
         let ft_ping_formatted =
             TextType::Formatted(self.compare_output(&mut ft_ping_text, &ping_text));
-        let ft_ping_error_formatted =
-            TextType::Formatted(self.compare_output(&mut ft_ping_error_text, &ping_error_text));
+        let mut ft_ping_error_formatted =
+            TextType::Formatted(self.compare_output(&mut ft_useful_error_text, &ping_useful_error_text));
+
+        if !ft_unnecessary_path.is_empty() {
+            if let TextType::Formatted(ref mut vec) = ft_ping_error_formatted {
+                let vec: &mut Vec<Vec<(bool, u8)>> = vec;
+                let first_line: &mut Vec<(bool, u8)> = vec.get_mut(0).unwrap();
+                let mut iter = ft_unnecessary_path.as_bytes().iter().enumerate();
+                let mut last_index: usize = 0;
+                loop {
+                    match iter.next() {
+                        Some(c) => {
+                            first_line.insert(c.0, (true, *c.1));
+                            last_index = c.0;
+                        },
+                        None => {
+                            first_line.insert(last_index + 1, (true, 58));
+                            first_line.insert(last_index + 2, (true, 32));
+                            break;
+                        },
+                    }
+                }
+
+            };
+            ft_useful_error_text.get_mut(0).unwrap()
+                .insert_str(
+                    0,
+                    (ft_unnecessary_path + ": ").as_str()
+                );
+        }
+        if !ping_unnecessary_path.is_empty() {
+            ping_useful_error_text.get_mut(0).unwrap()
+                .insert_str(
+                    0,
+                    (ping_unnecessary_path + ": ").as_str()
+                );
+        }
 
         self.ft_ping_output_viewer
             .set_text_to_display(ft_ping_formatted);
@@ -178,7 +216,7 @@ impl ErrorHandling {
         self.ft_ping_output_viewer
             .set_error_to_display(ft_ping_error_formatted);
         self.ping_output_viewer
-            .set_error_to_display(TextType::Standard(ping_error_text));
+            .set_error_to_display(TextType::Standard(ping_useful_error_text.to_owned()));
 
         if self.to_clear {
             frame.render_widget(Clear, upper_left_area);

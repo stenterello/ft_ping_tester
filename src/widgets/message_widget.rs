@@ -68,7 +68,7 @@ impl Widget for &MessageWidget {
             if !self.running_test {
                 ret.push(Line::from(Span::from(format!(
                     "Test Result: {}",
-                    if self.has_errors { "🔴" } else { "🟢" }
+                    if self.has_errors { "🔴 ERROR!" } else { "🟢 CORRECT!" }
                 ))));
             }
             ret

@@ -8,7 +8,6 @@ use ratatui::{
         Block, Paragraph, Widget, Wrap,
     },
 };
-
 use crate::utils::thread::Thread;
 
 #[derive(Debug, Clone)]
@@ -88,7 +87,7 @@ impl OutputViewer {
                     if c.1.content.as_bytes()[0] == pattern[idx] {
                         idx += 1;
                         if idx == pattern.len() {
-                            saved_idx.push(idx - pattern.len() + (saved_idx.len() * 3));
+                            saved_idx.push(c.0 - (pattern.len() - 1) + (saved_idx.len() * 3));
                             idx = 0;
                         }
                     } else {
@@ -98,6 +97,7 @@ impl OutputViewer {
                 None => break,
             }
         }
+
         for index in saved_idx {
             spans.insert(index, Span::from("f").white());
             spans.insert(index + 1, Span::from("t").white());
@@ -151,7 +151,7 @@ impl Widget for &OutputViewer {
                             ),
                         }
                     }
-                    OutputViewer::retranslate(&mut spans);
+                    // OutputViewer::retranslate(&mut spans);
                     lines.push(Line::from(spans));
                 }
 

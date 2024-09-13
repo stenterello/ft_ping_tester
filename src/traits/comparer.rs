@@ -1,7 +1,33 @@
 use itertools::{EitherOrBoth::*, Itertools};
+use std::path::Path;
 
 pub trait Comparer {
     fn set_errors(&mut self, val: bool) -> ();
+
+    fn search_fields(output: Vec<String>) -> (String, String) {
+        let mut ret: (String, String) = (String::default(), String::default());
+        match output.get(0) {
+            Some(line) => {
+                if let Some((path, message)) = line.split_once(": ") {
+                    ret.0 = String::from(message);
+                    ret.1 = String::from(Path::new(path).to_str().unwrap());
+                }
+            }
+            None => return ret,
+        };
+        ret
+    }
+
+    fn remove_path(output: &mut Vec<String>) -> (&mut Vec<String>, String) {
+        let (message_to_save, parent_path) = Self::search_fields(output.clone());
+        if parent_path.is_empty() {
+            (output, "".to_string())
+        } else {
+            output.remove(0);
+            output.insert(0, message_to_save);
+            (output, String::from(parent_path))
+        }
+    }
 
     fn compare_output(
         &mut self,
@@ -16,6 +42,8 @@ pub trait Comparer {
         for string in ft_ping_output.iter() {
             translated.push(string.replace("ft_ping", "ping"));
         }
+
+
 
         let mut ret: Vec<Vec<(bool, u8)>> = Vec::default();
         let mut ret_index: usize = 0;
