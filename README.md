@@ -1,6 +1,6 @@
 # ft_ping_tester
 
-This projects aims to build a simple tester to compare behaviour and output of ping (v2.0) and any personal projects focused on replicate the famous ICMP tool.  
+This projects aims to build a simple tester to compare behaviour and output of ping (v2.0) and 42 school project "ft_ping", focused on replicate the famous ICMP tool.
 
 ## Description
 The tester is divided into three parts, each one focusing on a particular aspect:
@@ -16,8 +16,9 @@ The tester is divided into three parts, each one focusing on a particular aspect
     setvbuf()...
     ```
 - Actually supported options:
-    - 
-- To change tests cases, use tests.json or define your own json file and write its path into conf.toml;
+    -
+
+- To change tests cases, use tests.json or define your own json file following the given example's structure and write its path into conf.toml;
 - To change binary or projects path, use conf.toml (be aware that, actually, build.rs will still try to download and compile inetutils version of ping and putting it in project root directory).
 
 

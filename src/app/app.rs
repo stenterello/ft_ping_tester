@@ -93,6 +93,7 @@ impl App {
                     self.welcome_widget.recompile(false);
                 } else if self.state == State::ErrorHandling {
                     self.state = State::Welcome;
+                    self.error_handling_widget.reset_test_index();
                 } else {
                     self.exit();
                 }

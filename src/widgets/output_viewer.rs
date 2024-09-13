@@ -74,7 +74,35 @@ impl OutputViewer {
     pub fn clear_buffers(&mut self) {
         self.text_to_display = TextType::Standard(Vec::default());
         self.error_to_display = TextType::Standard(Vec::default());
-        self.thread.clear_buffers()
+        self.thread.clear_buffers();
+    }
+
+    fn retranslate(spans: &mut Vec<Span>) {
+        let pattern: [u8; 4] = [b'p', b'i', b'n', b'g'];
+        let mut idx: usize = 0;
+        let mut saved_idx: Vec<usize> = Vec::default();
+        let mut iter = spans.iter().enumerate();
+        loop {
+            match iter.next() {
+                Some(c) => {
+                    if c.1.content.as_bytes()[0] == pattern[idx] {
+                        idx += 1;
+                        if idx == pattern.len() {
+                            saved_idx.push(idx - pattern.len() + (saved_idx.len() * 3));
+                            idx = 0;
+                        }
+                    } else {
+                        idx = 0;
+                    }
+                }
+                None => break,
+            }
+        }
+        for index in saved_idx {
+            spans.insert(index, Span::from("f").white());
+            spans.insert(index + 1, Span::from("t").white());
+            spans.insert(index + 2, Span::from("_").white());
+        }
     }
 }
 
@@ -123,6 +151,7 @@ impl Widget for &OutputViewer {
                             ),
                         }
                     }
+                    OutputViewer::retranslate(&mut spans);
                     lines.push(Line::from(spans));
                 }
 
@@ -158,10 +187,11 @@ impl Widget for &OutputViewer {
                             )),
                             (false, c) => spans.push(Span::styled(
                                 char::from_u32(*c as u32).unwrap().to_string(),
-                                Style::default().fg(Color::Red),
+                                Style::default().fg(Color::Red).bold(),
                             )),
                         }
                     }
+                    OutputViewer::retranslate(&mut spans);
                     lines.push(Line::from(spans));
                 }
                 Paragraph::new(Text::from(lines))

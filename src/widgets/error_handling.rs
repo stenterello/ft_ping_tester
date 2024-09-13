@@ -1,6 +1,7 @@
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
     layout::{Constraint, Layout},
+    widgets::Clear,
     Frame,
 };
 use serde_json::Value;
@@ -31,6 +32,7 @@ pub struct ErrorHandling {
     tests: Value,
     tests_idx: usize,
     commands_widget: CommandsWidget,
+    to_clear: bool,
 }
 
 impl TuiWidget for ErrorHandling {
@@ -71,6 +73,7 @@ impl ErrorHandling {
             tests,
             tests_idx: usize::default(),
             commands_widget: CommandsWidget::default(),
+            to_clear: false,
         }
     }
 
@@ -132,7 +135,9 @@ impl ErrorHandling {
         if self.running == false && self.to_run {
             self.run_processes();
             self.to_run = false;
+            self.to_clear = true;
         } else if self.running {
+            self.to_clear = false;
             match self.check_treads() {
                 Ok(_) => {}
                 Err(e) => return Err(e),
@@ -175,11 +180,20 @@ impl ErrorHandling {
         self.ping_output_viewer
             .set_error_to_display(TextType::Standard(ping_error_text));
 
-        frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
-        frame.render_widget(&self.ping_output_viewer, upper_right_area);
+        if self.to_clear {
+            frame.render_widget(Clear, upper_left_area);
+            frame.render_widget(Clear, upper_right_area);
+        } else {
+            frame.render_widget(&self.ft_ping_output_viewer, upper_left_area);
+            frame.render_widget(&self.ping_output_viewer, upper_right_area);
+        }
         frame.render_widget(&self.message_widget, status_area);
         frame.render_widget(&self.commands_widget, commands_area);
 
         Ok(())
+    }
+
+    pub fn reset_test_index(&mut self) -> () {
+        self.tests_idx = usize::default();
     }
 }

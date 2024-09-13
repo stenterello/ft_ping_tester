@@ -1,8 +1,8 @@
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Style, Stylize},
-    widgets::{block::BorderType, Block, Paragraph, Widget},
+    style::Stylize,
+    widgets::{Paragraph, Widget},
 };
 
 const COMMANDS_INFO: &str = " q: Go back | space: Next test ";
