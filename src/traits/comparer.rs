@@ -42,7 +42,7 @@ pub trait Comparer {
 
         let mut translated: Vec<String> = Vec::default();
         for string in ft_ping_output.iter() {
-            translated.push(string.replace("ft_ping", "ping").replace("`", "'"));
+            translated.push(string.replace("ft_ping", "ping"));
         }
 
         let mut ret: Vec<Vec<(bool, u8)>> = Vec::default();
