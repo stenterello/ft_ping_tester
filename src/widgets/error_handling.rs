@@ -1,3 +1,11 @@
+use crate::traits::comparer::Comparer;
+use crate::traits::tui_widget::TuiWidget;
+use crate::utils::config::config_extractor::Locations;
+use crate::widgets::common::choose_test_method::ChooseTestMethod;
+use crate::widgets::common::commands_widget::CommandsWidget;
+use crate::widgets::common::message_widget::MessageWidget;
+use crate::widgets::common::output_viewer::{OutputViewer, TextType};
+use crate::widgets::common::test_summary_widget::{TestResult, TestSummaryWidget};
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
     layout::{Constraint, Layout},
@@ -7,45 +15,64 @@ use ratatui::{
 use serde_json::Value;
 use std::io::{Error, ErrorKind, Result};
 
-use crate::traits::comparer::Comparer;
-use crate::traits::tui_widget::TuiWidget;
-use crate::utils::config_extractor::Locations;
-use crate::widgets::commands_widget::CommandsWidget;
-use crate::widgets::message_widget::MessageWidget;
-use crate::widgets::output_viewer::{OutputViewer, TextType};
-
 enum Viewer {
     FtPing,
     Ping,
 }
 
+#[derive(Debug, Default)]
+enum State {
+    #[default]
+    ChooseMethod,
+    Interactive,
+    Batch,
+    Summary,
+}
+
 #[derive(Debug)]
 pub struct ErrorHandling {
+    choose_method_widget: ChooseTestMethod,
     ft_ping_output_viewer: OutputViewer,
     ping_output_viewer: OutputViewer,
     message_widget: MessageWidget,
+    commands_widget: CommandsWidget,
+    summary_widget: TestSummaryWidget,
     running: bool,
+    finished: bool,
     to_run: bool,
     tests: Value,
     tests_idx: usize,
-    commands_widget: CommandsWidget,
     to_clear: bool,
+    state: State,
 }
 
 impl TuiWidget for ErrorHandling {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
-        match key_event.code {
-            KeyCode::Up => {}
-            KeyCode::Down => {}
-            KeyCode::Enter => {}
-            KeyCode::Char(' ') => {
-                if !self.running && !self.to_run {
-                    self.to_run = true;
-                    self.ft_ping_output_viewer.clear_buffers();
-                    self.ping_output_viewer.clear_buffers();
+        match self.state {
+            State::ChooseMethod => {
+                self.choose_method_widget.process_input(key_event);
+                if let Some(state) = self.choose_method_widget.selected() {
+                    match state {
+                        0 => self.state = State::Interactive,
+                        1 => self.state = State::Batch,
+                        _ => {}
+                    }
                 }
             }
-            _ => {}
+            State::Interactive => match key_event.code {
+                KeyCode::Char(' ') => {
+                    if !self.running && !self.to_run {
+                        self.to_run = true;
+                        self.ft_ping_output_viewer.clear_buffers();
+                        self.ping_output_viewer.clear_buffers();
+                    }
+                }
+                _ => {}
+            },
+            State::Batch => {}
+            State::Summary => {
+                self.summary_widget.process_input(key_event);
+            }
         };
     }
 }
@@ -59,35 +86,50 @@ impl Comparer for ErrorHandling {
 impl ErrorHandling {
     pub fn new(locations: Locations, tests: Value) -> Self {
         ErrorHandling {
+            choose_method_widget: ChooseTestMethod::new(vec![
+                "Interactive".to_string(),
+                "Immediate".to_string(),
+            ]),
             ft_ping_output_viewer: OutputViewer::new(
                 &locations.ft_ping_dir,
                 &locations.ft_ping_name,
             ),
             ping_output_viewer: OutputViewer::new(&locations.ping_dir, &locations.ping_name),
             message_widget: MessageWidget::default(),
+            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test ".to_string()),
+            summary_widget: TestSummaryWidget::default(),
             running: false,
+            finished: false,
             to_run: true,
             tests,
             tests_idx: usize::default(),
-            commands_widget: CommandsWidget::default(),
             to_clear: false,
+            state: State::default(),
         }
     }
 
     pub fn run_processes(&mut self) {
         match self.tests.get(self.tests_idx) {
             Some(test) => {
-                let mut str_vector: Vec<String> = Vec::default();
-                for val in test.clone().as_array().unwrap() {
-                    str_vector.push(String::from(val.as_str().unwrap()));
-                }
-                self.message_widget.set_arguments(str_vector.clone());
-                self.ft_ping_output_viewer.start_process(str_vector.clone());
-                self.ping_output_viewer.start_process(str_vector);
+                let arguments_vec = match test.as_array() {
+                    Some(s) => s
+                        .iter()
+                        .filter_map(|val| val.as_str().map(|s| s.to_string()))
+                        .collect(),
+                    None => Vec::new(),
+                };
+
+                self.summary_widget.add_test(arguments_vec.join(" "));
+                self.message_widget.set_arguments(arguments_vec.join(" "));
+                self.ft_ping_output_viewer
+                    .start_process(arguments_vec.clone());
+                self.ping_output_viewer.start_process(arguments_vec);
                 self.running = true;
                 self.tests_idx += 1;
             }
-            None => {}
+            None => {
+                self.finished = true;
+            }
         }
     }
 
@@ -128,7 +170,7 @@ impl ErrorHandling {
         Ok(())
     }
 
-    pub fn draw(&mut self, frame: &mut Frame) -> Result<()> {
+    fn draw_interactive_mode(&mut self, frame: &mut Frame) -> Result<()> {
         if self.running == false && self.to_run {
             self.run_processes();
             self.to_run = false;
@@ -163,13 +205,22 @@ impl ErrorHandling {
             self.ping_output_viewer.get_error_output(),
         );
 
-        let (mut ft_useful_error_text, ft_unnecessary_path) = ErrorHandling::remove_path(&mut ft_ping_error_text);
-        let (ping_useful_error_text, ping_unnecessary_path) = ErrorHandling::remove_path(&mut ping_error_text);
+        let (mut ft_useful_error_text, ft_unnecessary_path) =
+            ErrorHandling::remove_path(&mut ft_ping_error_text);
+        let (ping_useful_error_text, ping_unnecessary_path) =
+            ErrorHandling::remove_path(&mut ping_error_text);
 
         let ft_ping_formatted =
             TextType::Formatted(self.compare_output(&mut ft_ping_text, &ping_text));
-        let mut ft_ping_error_formatted =
-            TextType::Formatted(self.compare_output(&mut ft_useful_error_text, &ping_useful_error_text));
+        let mut ft_ping_error_formatted = TextType::Formatted(
+            self.compare_output(&mut ft_useful_error_text, &ping_useful_error_text),
+        );
+
+        self.summary_widget
+            .set_result(match !self.message_widget.errors() {
+                true => TestResult::Correct,
+                false => TestResult::Incorrect,
+            });
 
         if !ft_unnecessary_path.is_empty() {
             if let TextType::Formatted(ref mut vec) = ft_ping_error_formatted {
@@ -182,28 +233,25 @@ impl ErrorHandling {
                         Some(c) => {
                             first_line.insert(c.0, (true, *c.1));
                             last_index = c.0;
-                        },
+                        }
                         None => {
                             first_line.insert(last_index + 1, (true, 58));
                             first_line.insert(last_index + 2, (true, 32));
                             break;
-                        },
+                        }
                     }
                 }
-
             };
-            ft_useful_error_text.get_mut(0).unwrap()
-                .insert_str(
-                    0,
-                    (ft_unnecessary_path + ": ").as_str()
-                );
+            ft_useful_error_text
+                .get_mut(0)
+                .unwrap()
+                .insert_str(0, (ft_unnecessary_path + ": ").as_str());
         }
         if !ping_unnecessary_path.is_empty() {
-            ping_useful_error_text.get_mut(0).unwrap()
-                .insert_str(
-                    0,
-                    (ping_unnecessary_path + ": ").as_str()
-                );
+            ping_useful_error_text
+                .get_mut(0)
+                .unwrap()
+                .insert_str(0, (ping_unnecessary_path + ": ").as_str());
         }
 
         self.ft_ping_output_viewer
@@ -224,8 +272,19 @@ impl ErrorHandling {
         }
         frame.render_widget(&self.message_widget, status_area);
         frame.render_widget(&self.commands_widget, commands_area);
-
         Ok(())
+    }
+
+    pub fn draw(&mut self, frame: &mut Frame) -> Result<()> {
+        match self.state {
+            State::ChooseMethod => self.choose_method_widget.draw(frame),
+            State::Interactive => self.draw_interactive_mode(frame),
+            State::Batch => Ok(()),
+            State::Summary => {
+                frame.render_widget(&self.summary_widget, frame.size());
+                Ok(())
+            }
+        }
     }
 
     pub fn reset_test_index(&mut self) -> () {

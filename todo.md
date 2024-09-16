@@ -1,10 +1,7 @@
-check the build prints about configuring and building other executables
 add commands description in app
 widgets which scroll all the way down when text is higher than widget
 add check on exit code of ping and ft_ping
-mancano i check di -v -? --help --usage in tests.json
-rename "ping" in "ft_ping" after compare
-
+terminate threads when exit error handling widget
 
 Per appendere a file
 

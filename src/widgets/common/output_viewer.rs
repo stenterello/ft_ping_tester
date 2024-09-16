@@ -1,3 +1,4 @@
+use crate::utils::thread::Thread;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -8,7 +9,6 @@ use ratatui::{
         Block, Paragraph, Widget, Wrap,
     },
 };
-use crate::utils::thread::Thread;
 
 #[derive(Debug, Clone)]
 pub enum TextType {
@@ -102,9 +102,7 @@ impl OutputViewer {
             if *index > 2 && index < &spans.len() {
                 if spans.get(index - 1).unwrap().content.as_bytes()[0] == b'_' {
                     if spans.get(index - 2).unwrap().content.as_bytes()[0] == b't' {
-                        if spans.get(index - 3).unwrap().content.as_bytes()[0] == b'f' {
-
-                        }
+                        if spans.get(index - 3).unwrap().content.as_bytes()[0] == b'f' {}
                     }
                 } else {
                     spans.insert(*index, Span::from("f").yellow());

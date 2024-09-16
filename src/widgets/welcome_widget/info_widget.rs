@@ -1,18 +1,12 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
-    widgets::{
-        Widget,
-        block::BorderType,
-        Block,
-        Paragraph,
-        block::Title,
-    },
-    text::{Text, Line},
-    style::{Color, Style, Stylize}
+    style::{Color, Style, Stylize},
+    text::{Line, Text},
+    widgets::{block::BorderType, block::Title, Block, Paragraph, Widget},
 };
 
-#[derive (Debug, Default)]
+#[derive(Debug, Default)]
 pub struct InfoWidget;
 
 impl Widget for &InfoWidget {
@@ -24,11 +18,11 @@ impl Widget for &InfoWidget {
             .title_alignment(Alignment::Center)
             .border_type(BorderType::Rounded);
 
-        let text = Text::from(vec!{
+        let text = Text::from(vec![
             Line::from(" Made with Ratatui "),
             Line::from(""),
             Line::from(" https://docs.rs/ratatui/latest/ratatui/index.html "),
-        });
+        ]);
 
         Paragraph::new(text)
             .block(block)

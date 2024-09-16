@@ -1,7 +1,7 @@
 use crate::traits::tui_widget::TuiWidget;
 use crate::tui::Tui;
-use crate::utils::config_extractor::{ConfigExtractor, ConfigValues};
-use crate::utils::test_config_extractor::TestConfigExtractor;
+use crate::utils::config::config_extractor::{ConfigExtractor, ConfigValues};
+use crate::utils::config::test_config_extractor::TestConfigExtractor;
 use crate::widgets::error_handling::ErrorHandling;
 use crate::widgets::welcome_widget::WelcomeWidget;
 use ratatui::{
@@ -13,7 +13,7 @@ use std::{
     time::Duration,
 };
 
-const CONF_FILE: &str = "./conf.toml";
+const CONF_FILE: &str = "./config.toml";
 
 #[derive(Debug, Default, PartialEq)]
 pub enum State {
@@ -37,7 +37,7 @@ impl App {
         if !config.valid {
             return Err(Error::new(
                 ErrorKind::InvalidInput,
-                "Invalid paths in conf.toml",
+                "Invalid paths in config.toml",
             ));
         }
         let config: ConfigValues = config.config.unwrap();

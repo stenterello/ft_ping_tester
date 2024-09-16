@@ -4,7 +4,7 @@ mod recompiling_notice;
 
 use crate::app::app::State;
 use crate::traits::tui_widget::TuiWidget;
-use crate::widgets::list_widget::ListWidget;
+use crate::widgets::common::list_widget::ListWidget;
 use info_widget::InfoWidget;
 use intro_widget::IntroWidget;
 use ratatui::{
@@ -14,12 +14,14 @@ use ratatui::{
     Frame,
 };
 use recompiling_notice::RecompilingNotice;
+use crate::widgets::common::commands_widget::CommandsWidget;
 
 #[derive(Debug)]
 pub struct WelcomeWidget {
     intro_widget: IntroWidget,
     select_test_widget: ListWidget,
     info_widget: InfoWidget,
+    commands_widget: CommandsWidget,
     recompiling_notice: RecompilingNotice,
     pub recompiling: bool,
 }
@@ -55,6 +57,7 @@ impl WelcomeWidget {
                     "All tests".into(),
                     "Error handling tests".into(),
                     "Output tests".into(),
+                    "Packets compliance tests".into(),
                     "Performance tests".into(),
                     "Recompile ft_ping".into(),
                 ],
@@ -63,13 +66,14 @@ impl WelcomeWidget {
             recompiling: bool::default(),
             intro_widget: IntroWidget::default(),
             info_widget: InfoWidget::default(),
+            commands_widget: CommandsWidget::new(" ↑/↓: Move Up/Down | Enter: Select | Q: Exit ".to_string())
         }
     }
 
     pub fn draw(&mut self, frame: &mut Frame) {
         // Intro Widget
-        let [upper_area, lower_area] =
-            Layout::vertical([Constraint::Percentage(70), Constraint::Percentage(30)])
+        let [upper_area, lower_area, commands_area] =
+            Layout::vertical([Constraint::Percentage(75), Constraint::Percentage(35), Constraint::Percentage(3)])
                 .areas(frame.size());
         frame.render_widget(&self.intro_widget, upper_area);
 
@@ -82,6 +86,7 @@ impl WelcomeWidget {
 
         // Info Widget
         frame.render_widget(&self.info_widget, lower_right_area);
+        frame.render_widget(&self.commands_widget, commands_area);
 
         if self.recompiling {
             let center_h_area = Layout::horizontal([

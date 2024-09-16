@@ -12,7 +12,7 @@ use ratatui::{
 #[derive(Debug, Default)]
 pub struct MessageWidget {
     running_test: bool,
-    arguments: Vec<String>,
+    arguments: String,
     has_errors: bool,
 }
 
@@ -20,16 +20,24 @@ impl MessageWidget {
     pub fn new() -> Self {
         MessageWidget {
             running_test: false,
-            arguments: Vec::default(),
+            arguments: String::default(),
             has_errors: false,
         }
+    }
+
+    pub fn arguments(&self) -> &str {
+        &self.arguments
+    }
+    
+    pub fn errors(&self) -> bool {
+        self.has_errors
     }
 
     pub fn set_running(&mut self, value: bool) -> () {
         self.running_test = value;
     }
 
-    pub fn set_arguments(&mut self, args: Vec<String>) -> () {
+    pub fn set_arguments(&mut self, args: String) -> () {
         self.arguments = args;
     }
 
@@ -49,18 +57,15 @@ impl Widget for &MessageWidget {
         let message: Vec<Line> = {
             let mut ret: Vec<Line> = Vec::default();
             let mut tmp = Line::from(format!(
-                "{} {{ping}}",
+                "{} {{ping}} ",
                 if self.running_test {
                     "Running"
                 } else {
                     "Last run"
                 }
             ));
-            for arg in &self.arguments {
-                tmp.push_span(Span::from(" "));
-                tmp.push_span(Span::from(arg.as_str()));
-            }
-            tmp.push_span(Span::from("|."));
+            tmp.push_span(Span::from(self.arguments.as_str()));
+            tmp.push_span(Span::from("."));
 
             ret.push(tmp);
             ret.push(Line::default());
@@ -68,7 +73,11 @@ impl Widget for &MessageWidget {
             if !self.running_test {
                 ret.push(Line::from(Span::from(format!(
                     "Test Result: {}",
-                    if self.has_errors { "🔴 ERROR!" } else { "🟢 CORRECT!" }
+                    if self.has_errors {
+                        "🔴 ERROR!"
+                    } else {
+                        "🟢 CORRECT!"
+                    }
                 ))));
             }
             ret

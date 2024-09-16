@@ -1,0 +1,65 @@
+use crate::traits::tui_widget::TuiWidget;
+use crate::widgets::common::commands_widget::CommandsWidget;
+use crate::widgets::common::list_widget::{ListAlignment, ListWidget};
+use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use ratatui::layout::{Constraint, Layout};
+use ratatui::Frame;
+use std::io::Result;
+
+#[derive(Debug, Default, Clone)]
+pub struct ChooseTestMethod {
+    select_box: ListWidget,
+    selected: Option<usize>,
+    commands_widget: CommandsWidget,
+}
+
+impl ChooseTestMethod {
+    pub fn new(items: Vec<String>) -> Self {
+        Self {
+            select_box: ListWidget::new(" Test Method ".to_string(), items)
+                .with_alignment(ListAlignment::Centered),
+            selected: None,
+            commands_widget: CommandsWidget::new(
+                " ↑/↓: Move Up/Down | Enter: Select | Q: Back ".to_string(),
+            ),
+        }
+    }
+
+    pub fn selected(&mut self) -> Option<usize> {
+        self.selected.take()
+    }
+
+    pub fn draw(&mut self, frame: &mut Frame) -> Result<()> {
+        let center_h_area = Layout::horizontal([
+            Constraint::Percentage(15),
+            Constraint::Percentage(70),
+            Constraint::Percentage(15),
+        ])
+        .areas::<3>(frame.size())[1];
+        let center_hv_area = Layout::vertical([
+            Constraint::Percentage(35),
+            Constraint::Percentage(30),
+            Constraint::Percentage(35),
+        ])
+        .areas::<3>(center_h_area)[1];
+        let mut t = self.select_box.get_state();
+        frame.render_stateful_widget(&self.select_box, center_hv_area, &mut t);
+        frame.render_widget(
+            &self.commands_widget,
+            Layout::vertical([Constraint::Percentage(97), Constraint::Percentage(3)])
+                .areas::<2>(frame.size())[1],
+        );
+        Ok(())
+    }
+}
+
+impl TuiWidget for ChooseTestMethod {
+    fn process_input(&mut self, key_event: KeyEvent) -> () {
+        match key_event.code {
+            KeyCode::Up => self.select_box.select_previous(),
+            KeyCode::Down => self.select_box.select_next(),
+            KeyCode::Enter => self.selected = self.select_box.selected(),
+            _ => {}
+        }
+    }
+}

@@ -66,9 +66,21 @@ pub trait Comparer {
                                 if !eq {
                                     self.set_errors(true);
                                 }
-                                ret[ret_index].push((eq, *c));
+                                match ret.get_mut(ret_index) {
+                                    Some(v) => v.push((eq, *c)),
+                                    None => {
+                                        ret.push(Vec::default());
+                                        ret.get_mut(ret_index).unwrap().push((eq, *c));
+                                    }
+                                }
                             }
-                            None => ret[ret_index].push((false, *c)),
+                            None => match ret.get_mut(ret_index) {
+                                Some(v) => v.push((false, *c)),
+                                None => {
+                                    ret.push(Vec::default());
+                                    ret.get_mut(ret_index).unwrap().push((false, *c));
+                                }
+                            }
                         }
                     });
                 }
