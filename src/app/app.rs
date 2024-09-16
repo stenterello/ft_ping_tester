@@ -12,6 +12,7 @@ use std::{
     io::{Error, ErrorKind, Result},
     time::Duration,
 };
+use crate::widgets::output_tests_widget::OutputTestsWidget;
 
 const CONF_FILE: &str = "./config.toml";
 
@@ -20,6 +21,9 @@ pub enum State {
     #[default]
     Welcome,
     ErrorHandling,
+    OutputTests,
+    PacketTests,
+    PerformanceTests,
     Invalid,
 }
 
@@ -27,6 +31,7 @@ pub enum State {
 pub struct App {
     welcome_widget: WelcomeWidget,
     error_handling_widget: ErrorHandling,
+    output_tests_widget: OutputTestsWidget,
     state: State,
     about_to_quit: bool,
 }
@@ -47,6 +52,10 @@ impl App {
             error_handling_widget: ErrorHandling::new(
                 config.locations.clone(),
                 tests["error_handling"].clone(),
+            ),
+            output_tests_widget: OutputTestsWidget::new(
+                config.locations,
+                tests["output_tests"].clone()
             ),
             state: State::default(),
             about_to_quit: false,
@@ -103,6 +112,8 @@ impl App {
                 match self.state {
                     State::Welcome => self.welcome_widget.process_input(key_event),
                     State::ErrorHandling => self.error_handling_widget.process_input(key_event),
+                    State::OutputTests => self.output_tests_widget.process_input(key_event),
+                    State::PacketTests | State::PerformanceTests => todo!(),
                     State::Invalid => {}
                 };
             }
@@ -113,13 +124,11 @@ impl App {
     fn render(&mut self, frame: &mut Frame) -> Result<()> {
         match self.state {
             State::Welcome => self.welcome_widget.draw(frame),
-            State::ErrorHandling => match self.error_handling_widget.draw(frame) {
-                Ok(_) => {}
-                Err(e) => return Err(e),
-            },
-            _ => {}
-        };
-        Ok(())
+            State::ErrorHandling => self.error_handling_widget.draw(frame),
+            State::OutputTests => self.output_tests_widget.draw(frame),
+            State::PacketTests | State::PerformanceTests => todo!(),
+            State::Invalid => todo!()
+        }
     }
 
     fn select(&mut self) {
@@ -128,7 +137,7 @@ impl App {
         }
 
         match &self.state {
-            State::Welcome => self.state = self.welcome_widget.select_state() as State,
+            State::Welcome => self.state = self.welcome_widget.select_state(),
             _ => {}
         };
     }

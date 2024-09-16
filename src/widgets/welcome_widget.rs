@@ -70,7 +70,7 @@ impl WelcomeWidget {
         }
     }
 
-    pub fn draw(&mut self, frame: &mut Frame) {
+    pub fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
         // Intro Widget
         let [upper_area, lower_area, commands_area] =
             Layout::vertical([Constraint::Percentage(75), Constraint::Percentage(35), Constraint::Percentage(3)])
@@ -104,6 +104,7 @@ impl WelcomeWidget {
             frame.render_widget(Clear, center_hv_area);
             frame.render_widget(&self.recompiling_notice, center_hv_area);
         }
+        Ok(())
     }
 
     pub fn select_previous(&mut self) {
@@ -128,7 +129,10 @@ impl WelcomeWidget {
         match index {
             0 => State::Welcome,
             1 => State::ErrorHandling,
-            4 => {
+            2 => State::OutputTests,
+            3 => State::PacketTests,
+            4 => State::PerformanceTests,
+            5 => {
                 self.recompile(true);
                 State::Welcome
             }

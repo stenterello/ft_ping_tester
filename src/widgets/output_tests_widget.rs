@@ -1,33 +1,28 @@
+use std::io::{Error, ErrorKind};
+use ratatui::crossterm::event::{KeyCode, KeyEvent};
+use ratatui::Frame;
+use ratatui::layout::{Constraint, Layout};
+use ratatui::widgets::Clear;
+use serde_json::Value;
 use crate::traits::comparer::Comparer;
 use crate::traits::tui_widget::TuiWidget;
 use crate::utils::config::config_extractor::Locations;
-use crate::widgets::common::choose_test_method::ChooseTestMethod;
 use crate::widgets::common::commands_widget::CommandsWidget;
 use crate::widgets::common::message_widget::MessageWidget;
 use crate::widgets::common::output_viewer::{OutputViewer, TextType};
 use crate::widgets::common::test_summary_widget::{TestResult, TestSummaryWidget};
 use crate::widgets::common::enums::Viewer;
-use ratatui::{
-    crossterm::event::{KeyCode, KeyEvent},
-    layout::{Constraint, Layout},
-    widgets::Clear,
-    Frame,
-};
-use serde_json::Value;
-use std::io::{Error, ErrorKind, Result};
+use crate::widgets::error_handling::ErrorHandling;
 
-#[derive(Debug, Default)]
+#[derive (Debug, Default)]
 enum State {
     #[default]
-    ChooseMethod,
     Interactive,
-    Batch,
     Summary,
 }
 
-#[derive(Debug)]
-pub struct ErrorHandling {
-    choose_method_widget: ChooseTestMethod,
+#[derive (Debug)]
+pub struct OutputTestsWidget {
     ft_ping_output_viewer: OutputViewer,
     ping_output_viewer: OutputViewer,
     message_widget: MessageWidget,
@@ -42,19 +37,9 @@ pub struct ErrorHandling {
     state: State,
 }
 
-impl TuiWidget for ErrorHandling {
+impl TuiWidget for OutputTestsWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match self.state {
-            State::ChooseMethod => {
-                self.choose_method_widget.process_input(key_event);
-                if let Some(state) = self.choose_method_widget.selected() {
-                    match state {
-                        0 => self.state = State::Interactive,
-                        1 => self.state = State::Batch,
-                        _ => {}
-                    }
-                }
-            }
             State::Interactive => match key_event.code {
                 KeyCode::Char(' ') => {
                     if !self.running && !self.to_run {
@@ -65,7 +50,6 @@ impl TuiWidget for ErrorHandling {
                 }
                 _ => {}
             },
-            State::Batch => {}
             State::Summary => {
                 self.summary_widget.process_input(key_event);
             }
@@ -73,19 +57,15 @@ impl TuiWidget for ErrorHandling {
     }
 }
 
-impl Comparer for ErrorHandling {
+impl Comparer for OutputTestsWidget {
     fn set_errors(&mut self, val: bool) -> () {
         self.message_widget.set_errors(val);
     }
 }
 
-impl ErrorHandling {
+impl OutputTestsWidget {
     pub fn new(locations: Locations, tests: Value) -> Self {
-        ErrorHandling {
-            choose_method_widget: ChooseTestMethod::new(vec![
-                "Interactive".to_string(),
-                "Immediate".to_string(),
-            ]),
+        OutputTestsWidget {
             ft_ping_output_viewer: OutputViewer::new(
                 &locations.ft_ping_dir,
                 &locations.ft_ping_name,
@@ -129,7 +109,7 @@ impl ErrorHandling {
         }
     }
 
-    fn check_thread_exit_status(&mut self, output_viewer: Viewer) -> Result<()> {
+    fn check_thread_exit_status(&mut self, output_viewer: Viewer) -> std::io::Result<()> {
         let viewer = match output_viewer {
             Viewer::FtPing => &mut self.ft_ping_output_viewer,
             Viewer::Ping => &mut self.ping_output_viewer,
@@ -148,7 +128,7 @@ impl ErrorHandling {
         Ok(())
     }
 
-    fn check_treads(&mut self) -> Result<()> {
+    fn check_treads(&mut self) -> std::io::Result<()> {
         match self.check_thread_exit_status(Viewer::FtPing) {
             Ok(_) => {}
             Err(e) => return Err(e),
@@ -166,7 +146,7 @@ impl ErrorHandling {
         Ok(())
     }
 
-    fn draw_interactive_mode(&mut self, frame: &mut Frame) -> Result<()> {
+    fn draw_interactive_mode(&mut self, frame: &mut Frame) -> std::io::Result<()> {
         if self.running == false && self.to_run {
             self.run_processes();
             self.to_run = false;
@@ -271,11 +251,9 @@ impl ErrorHandling {
         Ok(())
     }
 
-    pub fn draw(&mut self, frame: &mut Frame) -> Result<()> {
+    pub fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
         match self.state {
-            State::ChooseMethod => self.choose_method_widget.draw(frame),
             State::Interactive => self.draw_interactive_mode(frame),
-            State::Batch => Ok(()),
             State::Summary => {
                 frame.render_widget(&self.summary_widget, frame.size());
                 Ok(())
