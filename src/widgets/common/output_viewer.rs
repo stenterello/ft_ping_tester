@@ -126,20 +126,14 @@ impl Widget for &OutputViewer {
             .style(Style::default().fg(Color::Yellow))
             .border_type(BorderType::Rounded);
 
+        let mut text: Text = Text::default();
+
         match &self.text_to_display {
             TextType::Standard(s) => {
                 if !s.is_empty() {
-                    let lines = s.join("\n");
-                    Paragraph::new(lines.as_str())
-                        .block(block.clone())
-                        .wrap(Wrap { trim: true })
-                        .style(
-                            Style::default()
-                                .bg(Color::Rgb(46, 52, 64))
-                                .fg(Color::White)
-                                .bold(),
-                        )
-                        .render(area, buf);
+                    for line in s {
+                        text.push_line(Line::from(line.clone()));
+                    }
                 }
             }
             TextType::Formatted(s) => {
@@ -161,30 +155,24 @@ impl Widget for &OutputViewer {
                             ),
                         }
                     }
+
                     OutputViewer::retranslate(&mut spans);
                     lines.push(Line::from(spans));
                 }
-
-                Paragraph::new(Text::from(lines))
-                    .block(block.clone())
-                    .wrap(Wrap { trim: true })
-                    .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
-                    .render(area, buf);
+                for line in lines {
+                    text.push_line(line);
+                }
             }
         }
 
         match &self.error_to_display {
             TextType::Standard(s) => {
                 if !s.is_empty() {
-                    let lines = s.join("\n");
-                    Paragraph::new(lines.as_str())
-                        .block(block.clone())
-                        .wrap(Wrap { trim: true })
-                        .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
-                        .render(area, buf);
+                    for line in s {
+                        text.push_line(Line::from(line.clone()));
+                    }
                 }
             }
-
             TextType::Formatted(s) => {
                 let mut lines: Vec<Line> = vec![];
                 for string in s {
@@ -204,12 +192,15 @@ impl Widget for &OutputViewer {
                     OutputViewer::retranslate(&mut spans);
                     lines.push(Line::from(spans));
                 }
-                Paragraph::new(Text::from(lines))
-                    .block(block)
-                    .wrap(Wrap { trim: true })
-                    .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
-                    .render(area, buf);
+                for line in lines {
+                    text.push_line(line);
+                }
             }
         }
+        Paragraph::new(text)
+            .block(block)
+            .wrap(Wrap { trim: true })
+            .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
+            .render(area, buf);
     }
 }

@@ -194,6 +194,7 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller + TuiWidget {
         if self.to_clear() {
             frame.render_widget(Clear, upper_left_area);
             frame.render_widget(Clear, upper_right_area);
+            self.set_to_clear(false);
         } else {
             frame.render_widget(&*self.output_viewer(Viewer::FtPing), upper_left_area);
             frame.render_widget(&*self.output_viewer(Viewer::Ping), upper_right_area);

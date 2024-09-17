@@ -32,7 +32,6 @@ pub struct ErrorHandling {
     commands_widget: CommandsWidget,
     summary_widget: TestSummaryWidget,
     running: bool,
-    finished: bool,
     to_run: bool,
     tests: Value,
     tests_idx: usize,
@@ -126,7 +125,7 @@ impl ThreadStringPuller for ErrorHandling {
     }
 
     fn set_finished(&mut self) -> () {
-        self.finished = true;
+        self.state = State::Summary;
     }
 }
 
@@ -164,7 +163,6 @@ impl ErrorHandling {
             commands_widget: CommandsWidget::new(" Q: Back | Space: Next test ".to_string()),
             summary_widget: TestSummaryWidget::default(),
             running: false,
-            finished: false,
             to_run: true,
             tests,
             tests_idx: usize::default(),

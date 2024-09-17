@@ -83,8 +83,7 @@ impl StatefulWidget for &ListWidget {
         let block = Block::bordered()
             .title(title.alignment(Alignment::Center))
             .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded)
-            .padding(Padding::top(1));
+            .border_type(BorderType::Rounded);
 
         let correct_area: Rect = match self.alignment {
             ListAlignment::Standard => area,

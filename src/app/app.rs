@@ -111,10 +111,14 @@ impl App {
                     self.exit();
                 }
             }
-            KeyCode::Enter => self.select(),
             _ => {
                 match self.state {
-                    State::Welcome => self.welcome_widget.process_input(key_event),
+                    State::Welcome => {
+                        self.welcome_widget.process_input(key_event);
+                        if let Some(state) = self.welcome_widget.selected() {
+                            self.state = state;
+                        }
+                    }
                     State::ErrorHandling => self.error_handling_widget.process_input(key_event),
                     State::OutputTests => self.output_tests_widget.process_input(key_event),
                     State::PacketTests | State::PerformanceTests => todo!(),

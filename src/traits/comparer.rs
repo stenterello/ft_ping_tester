@@ -37,7 +37,7 @@ pub trait Comparer {
         self.set_errors(false);
 
         if ft_ping_output.is_empty() && ping_output.is_empty() {
-            return vec![vec![(true, u8::default())]];
+            return vec![];
         }
 
         let mut translated: Vec<String> = Vec::default();
@@ -80,7 +80,7 @@ pub trait Comparer {
                                     ret.push(Vec::default());
                                     ret.get_mut(ret_index).unwrap().push((false, *c));
                                 }
-                            }
+                            },
                         }
                     });
                 }

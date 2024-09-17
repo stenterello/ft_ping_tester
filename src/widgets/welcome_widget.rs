@@ -25,6 +25,7 @@ pub struct WelcomeWidget {
     recompiling_notice: RecompilingNotice,
     pub recompiling: bool,
     to_clear: bool,
+    state: Option<State>,
 }
 
 impl TuiWidget for WelcomeWidget {
@@ -43,6 +44,9 @@ impl TuiWidget for WelcomeWidget {
                 } else {
                     self.select_next();
                 }
+            }
+            KeyCode::Enter => {
+                self.state = Some(self.select_state());
             }
             _ => {}
         };
@@ -121,6 +125,7 @@ impl WelcomeWidget {
                 " ↑/↓: Move Up/Down | Enter: Select | Q: Exit ".to_string(),
             ),
             to_clear: true,
+            state: None,
         }
     }
 
@@ -155,5 +160,9 @@ impl WelcomeWidget {
             }
             _ => State::Invalid,
         }
+    }
+
+    pub fn selected(&mut self) -> Option<State> {
+        self.state.take()
     }
 }

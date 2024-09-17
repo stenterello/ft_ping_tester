@@ -48,9 +48,9 @@ impl TuiWidget for ChooseTestMethod {
         ])
         .areas::<3>(frame.size())[1];
         let center_hv_area = Layout::vertical([
-            Constraint::Percentage(35),
             Constraint::Percentage(30),
-            Constraint::Percentage(35),
+            Constraint::Percentage(40),
+            Constraint::Percentage(30),
         ])
         .areas::<3>(center_h_area)[1];
         let mut t = self.select_box.get_state();
