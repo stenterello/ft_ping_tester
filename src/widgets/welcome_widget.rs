@@ -4,6 +4,7 @@ mod recompiling_notice;
 
 use crate::app::app::State;
 use crate::traits::tui_widget::TuiWidget;
+use crate::widgets::common::commands_widget::CommandsWidget;
 use crate::widgets::common::list_widget::ListWidget;
 use info_widget::InfoWidget;
 use intro_widget::IntroWidget;
@@ -14,7 +15,6 @@ use ratatui::{
     Frame,
 };
 use recompiling_notice::RecompilingNotice;
-use crate::widgets::common::commands_widget::CommandsWidget;
 
 #[derive(Debug)]
 pub struct WelcomeWidget {
@@ -46,35 +46,15 @@ impl TuiWidget for WelcomeWidget {
             _ => {}
         };
     }
-}
 
-impl WelcomeWidget {
-    pub fn new(path: String) -> Self {
-        WelcomeWidget {
-            select_test_widget: ListWidget::new(
-                " Choose test: ".into(),
-                vec![
-                    "All tests".into(),
-                    "Error handling tests".into(),
-                    "Output tests".into(),
-                    "Packets compliance tests".into(),
-                    "Performance tests".into(),
-                    "Recompile ft_ping".into(),
-                ],
-            ),
-            recompiling_notice: RecompilingNotice::new(path),
-            recompiling: bool::default(),
-            intro_widget: IntroWidget::default(),
-            info_widget: InfoWidget::default(),
-            commands_widget: CommandsWidget::new(" ↑/↓: Move Up/Down | Enter: Select | Q: Exit ".to_string())
-        }
-    }
-
-    pub fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
+    fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
         // Intro Widget
-        let [upper_area, lower_area, commands_area] =
-            Layout::vertical([Constraint::Percentage(75), Constraint::Percentage(35), Constraint::Percentage(3)])
-                .areas(frame.size());
+        let [upper_area, lower_area, commands_area] = Layout::vertical([
+            Constraint::Percentage(75),
+            Constraint::Percentage(35),
+            Constraint::Percentage(3),
+        ])
+        .areas(frame.size());
         frame.render_widget(&self.intro_widget, upper_area);
 
         // Select Test Widget
@@ -105,6 +85,31 @@ impl WelcomeWidget {
             frame.render_widget(&self.recompiling_notice, center_hv_area);
         }
         Ok(())
+    }
+}
+
+impl WelcomeWidget {
+    pub fn new(path: String) -> Self {
+        WelcomeWidget {
+            select_test_widget: ListWidget::new(
+                " Choose test: ".into(),
+                vec![
+                    "All tests".into(),
+                    "Error handling tests".into(),
+                    "Output tests".into(),
+                    "Packets compliance tests".into(),
+                    "Performance tests".into(),
+                    "Recompile ft_ping".into(),
+                ],
+            ),
+            recompiling_notice: RecompilingNotice::new(path),
+            recompiling: bool::default(),
+            intro_widget: IntroWidget::default(),
+            info_widget: InfoWidget::default(),
+            commands_widget: CommandsWidget::new(
+                " ↑/↓: Move Up/Down | Enter: Select | Q: Exit ".to_string(),
+            ),
+        }
     }
 
     pub fn select_previous(&mut self) {

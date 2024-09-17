@@ -3,6 +3,7 @@ use crate::tui::Tui;
 use crate::utils::config::config_extractor::{ConfigExtractor, ConfigValues};
 use crate::utils::config::test_config_extractor::TestConfigExtractor;
 use crate::widgets::error_handling::ErrorHandling;
+use crate::widgets::output_tests_widget::OutputTestsWidget;
 use crate::widgets::welcome_widget::WelcomeWidget;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
@@ -12,7 +13,6 @@ use std::{
     io::{Error, ErrorKind, Result},
     time::Duration,
 };
-use crate::widgets::output_tests_widget::OutputTestsWidget;
 
 const CONF_FILE: &str = "./config.toml";
 
@@ -55,7 +55,7 @@ impl App {
             ),
             output_tests_widget: OutputTestsWidget::new(
                 config.locations,
-                tests["output_tests"].clone()
+                tests["output_tests"].clone(),
             ),
             state: State::default(),
             about_to_quit: false,
@@ -103,6 +103,9 @@ impl App {
                 } else if self.state == State::ErrorHandling {
                     self.state = State::Welcome;
                     self.error_handling_widget.reset_test_index();
+                } else if self.state == State::OutputTests {
+                    self.state = State::Welcome;
+                    self.output_tests_widget.reset_test_index();
                 } else {
                     self.exit();
                 }
@@ -127,7 +130,7 @@ impl App {
             State::ErrorHandling => self.error_handling_widget.draw(frame),
             State::OutputTests => self.output_tests_widget.draw(frame),
             State::PacketTests | State::PerformanceTests => todo!(),
-            State::Invalid => todo!()
+            State::Invalid => todo!(),
         }
     }
 

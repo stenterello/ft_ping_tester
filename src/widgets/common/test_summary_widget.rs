@@ -1,3 +1,6 @@
+use crate::traits::tui_widget::TuiWidget;
+use crate::utils::enums::TestResult;
+use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Alignment, Margin};
 use ratatui::prelude::{Color, Style, Stylize};
 use ratatui::text::{Line, Text};
@@ -11,16 +14,6 @@ use ratatui::{
     widgets::{StatefulWidget, Widget},
 };
 use std::cell::RefCell;
-use ratatui::crossterm::event::{KeyCode, KeyEvent};
-use crate::traits::tui_widget::TuiWidget;
-
-#[derive(Debug, Default)]
-pub enum TestResult {
-    Correct,
-    Incorrect,
-    #[default]
-    Unknown,
-}
 
 #[derive(Debug, Default)]
 pub struct TestSummaryWidget {
@@ -45,7 +38,9 @@ impl TestSummaryWidget {
     }
 
     fn move_down(&mut self) {
-        if self.vertical_scroll + self.widget_height.borrow().to_owned() < self.test_results.len() + 5 {
+        if self.vertical_scroll + self.widget_height.borrow().to_owned()
+            < self.test_results.len() + 5
+        {
             self.vertical_scroll += 1;
         }
     }
@@ -62,6 +57,10 @@ impl TuiWidget for TestSummaryWidget {
             }
             _ => {}
         }
+    }
+
+    fn draw(&mut self, _frame: &mut ratatui::Frame) -> std::io::Result<()> {
+        Ok(())
     }
 }
 

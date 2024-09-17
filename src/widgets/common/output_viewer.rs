@@ -1,3 +1,5 @@
+use crate::traits::thread_launcher::ThreadLauncher;
+use crate::utils::enums::TextType;
 use crate::utils::thread::Thread;
 use ratatui::{
     buffer::Buffer,
@@ -10,17 +12,17 @@ use ratatui::{
     },
 };
 
-#[derive(Debug, Clone)]
-pub enum TextType {
-    Standard(Vec<String>),
-    Formatted(Vec<Vec<(bool, u8)>>),
-}
-
 #[derive(Debug)]
 pub struct OutputViewer {
     thread: Thread,
     text_to_display: TextType,
     error_to_display: TextType,
+}
+
+impl ThreadLauncher for OutputViewer {
+    fn is_running(&self) -> bool {
+        self.thread.is_running()
+    }
 }
 
 impl OutputViewer {
@@ -46,10 +48,6 @@ impl OutputViewer {
 
     pub fn get_error_output(&self) -> Vec<String> {
         self.thread.get_error_output()
-    }
-
-    pub fn is_running(&self) -> bool {
-        self.thread.is_running()
     }
 
     pub fn get_error_message(&mut self) -> String {

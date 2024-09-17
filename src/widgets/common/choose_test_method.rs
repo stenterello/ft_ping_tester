@@ -28,8 +28,19 @@ impl ChooseTestMethod {
     pub fn selected(&mut self) -> Option<usize> {
         self.selected.take()
     }
+}
 
-    pub fn draw(&mut self, frame: &mut Frame) -> Result<()> {
+impl TuiWidget for ChooseTestMethod {
+    fn process_input(&mut self, key_event: KeyEvent) -> () {
+        match key_event.code {
+            KeyCode::Up => self.select_box.select_previous(),
+            KeyCode::Down => self.select_box.select_next(),
+            KeyCode::Enter => self.selected = self.select_box.selected(),
+            _ => {}
+        }
+    }
+
+    fn draw(&mut self, frame: &mut Frame) -> Result<()> {
         let center_h_area = Layout::horizontal([
             Constraint::Percentage(15),
             Constraint::Percentage(70),
@@ -50,16 +61,5 @@ impl ChooseTestMethod {
                 .areas::<2>(frame.size())[1],
         );
         Ok(())
-    }
-}
-
-impl TuiWidget for ChooseTestMethod {
-    fn process_input(&mut self, key_event: KeyEvent) -> () {
-        match key_event.code {
-            KeyCode::Up => self.select_box.select_previous(),
-            KeyCode::Down => self.select_box.select_next(),
-            KeyCode::Enter => self.selected = self.select_box.selected(),
-            _ => {}
-        }
     }
 }
