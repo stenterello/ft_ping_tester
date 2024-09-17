@@ -39,36 +39,44 @@ pub struct ErrorHandling {
     tests_idx: usize,
     to_clear: bool,
     state: State,
+    upper_state: Option<crate::app::State>,
 }
 
 impl TuiWidget for ErrorHandling {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
-        match self.state {
-            State::ChooseMethod => {
-                self.choose_method_widget.process_input(key_event);
-                if let Some(state) = self.choose_method_widget.selected() {
-                    match state {
-                        0 => self.state = State::Interactive,
-                        1 => self.state = State::Batch,
-                        _ => {}
+        if key_event.code == KeyCode::Char('q') {
+            self.upper_state = Some(crate::app::State::Welcome);
+            self.state = State::ChooseMethod;
+            self.reset_test_index();
+            self.summary_widget.clear_results();
+        } else {
+            match self.state {
+                State::ChooseMethod => {
+                    self.choose_method_widget.process_input(key_event);
+                    if let Some(state) = self.choose_method_widget.selected() {
+                        match state {
+                            0 => self.state = State::Interactive,
+                            1 => self.state = State::Batch,
+                            _ => {}
+                        }
                     }
                 }
-            }
-            State::Interactive => match key_event.code {
-                KeyCode::Char(' ') => {
-                    if !self.running && !self.to_run {
-                        self.to_run = true;
-                        self.ft_ping_output_viewer.clear_buffers();
-                        self.ping_output_viewer.clear_buffers();
+                State::Interactive => match key_event.code {
+                    KeyCode::Char(' ') => {
+                        if !self.running && !self.to_run {
+                            self.to_run = true;
+                            self.ft_ping_output_viewer.clear_buffers();
+                            self.ping_output_viewer.clear_buffers();
+                        }
                     }
+                    _ => {}
+                },
+                State::Batch => {}
+                State::Summary => {
+                    self.summary_widget.process_input(key_event);
                 }
-                _ => {}
-            },
-            State::Batch => {}
-            State::Summary => {
-                self.summary_widget.process_input(key_event);
-            }
-        };
+            };
+        }
     }
 
     fn draw(&mut self, frame: &mut Frame) -> Result<()> {
@@ -89,6 +97,10 @@ impl TuiWidget for ErrorHandling {
 
     fn to_clear(&self) -> bool {
         self.to_clear
+    }
+
+    fn state(&mut self) -> Option<crate::app::State> {
+        self.upper_state.take()
     }
 }
 
@@ -170,6 +182,7 @@ impl ErrorHandling {
             tests_idx: usize::default(),
             to_clear: false,
             state: State::default(),
+            upper_state: None,
         }
     }
 

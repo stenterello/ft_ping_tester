@@ -3,7 +3,7 @@ mod widgets;
 
 use crate::tui::Tui;
 use ratatui::{
-    crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
+    crossterm::event::{self, Event, KeyEvent, KeyEventKind},
     Frame,
 };
 use std::{
@@ -27,6 +27,7 @@ pub enum State {
     OutputTests,
     PacketTests,
     PerformanceTests,
+    Exit,
     Invalid,
 }
 
@@ -98,38 +99,38 @@ impl App {
         Ok(())
     }
 
-    fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
-        match key_event.code {
-            KeyCode::Char('q') => {
-                if self.welcome_widget.recompiling {
-                    self.welcome_widget.recompile(false);
-                } else if self.state == State::ErrorHandling {
-                    self.state = State::Welcome;
-                    self.welcome_widget.set_to_clear(true);
-                    self.error_handling_widget.reset_test_index();
-                } else if self.state == State::OutputTests {
-                    self.state = State::Welcome;
-                    self.welcome_widget.set_to_clear(true);
-                    self.output_tests_widget.reset_test_index();
-                } else {
-                    self.exit();
+    fn update_state(&mut self) -> () {
+        match self.state {
+            State::Welcome => {
+                if let Some(state) = self.welcome_widget.state() {
+                    self.state = state;
                 }
             }
-            _ => {
-                match self.state {
-                    State::Welcome => {
-                        self.welcome_widget.process_input(key_event);
-                        if let Some(state) = self.welcome_widget.selected() {
-                            self.state = state;
-                        }
-                    }
-                    State::ErrorHandling => self.error_handling_widget.process_input(key_event),
-                    State::OutputTests => self.output_tests_widget.process_input(key_event),
-                    State::PacketTests | State::PerformanceTests => todo!(),
-                    State::Invalid => {}
-                };
+            State::ErrorHandling => {
+                if let Some(state) = self.error_handling_widget.state() {
+                    self.state = state;
+                }
             }
+            State::OutputTests => {
+                if let Some(state) = self.output_tests_widget.state() {
+                    self.state = state;
+                }
+            }
+            State::PacketTests | State::PerformanceTests => todo!(),
+            State::Invalid | State::Exit => {}
         }
+    }
+
+    fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
+        match self.state {
+            State::Welcome => self.welcome_widget.process_input(key_event),
+            State::ErrorHandling => self.error_handling_widget.process_input(key_event),
+            State::OutputTests => self.output_tests_widget.process_input(key_event),
+            State::PacketTests | State::PerformanceTests => todo!(),
+            State::Invalid | State::Exit => {}
+        };
+
+        self.update_state();
         Ok(())
     }
 
@@ -138,23 +139,12 @@ impl App {
             State::Welcome => self.welcome_widget.draw(frame),
             State::ErrorHandling => self.error_handling_widget.draw(frame),
             State::OutputTests => self.output_tests_widget.draw(frame),
-            State::PacketTests | State::PerformanceTests => todo!(),
-            State::Invalid => todo!(),
-        }
-    }
-
-    fn select(&mut self) {
-        if self.welcome_widget.recompiling {
-            return;
-        }
-
-        match &self.state {
-            State::Welcome => {
-                self.state = self.welcome_widget.select_state();
-                self.welcome_widget.set_to_clear(true);
+            State::PacketTests | State::PerformanceTests | State::Invalid => todo!(),
+            State::Exit => {
+                self.exit();
+                Ok(())
             }
-            _ => {}
-        };
+        }
     }
 
     fn exit(&mut self) {

@@ -5,7 +5,6 @@ mod recompiling_notice;
 use crate::app::widgets::common::commands_widget::CommandsWidget;
 use crate::app::widgets::common::list_widget::ListWidget;
 use crate::app::widgets::traits::tui_widget::TuiWidget;
-use crate::app::State;
 use info_widget::InfoWidget;
 use intro_widget::IntroWidget;
 use ratatui::{
@@ -16,6 +15,13 @@ use ratatui::{
 };
 use recompiling_notice::RecompilingNotice;
 
+#[derive(Debug, Default)]
+enum State {
+    #[default]
+    Initial,
+    Recompiling,
+}
+
 #[derive(Debug)]
 pub struct WelcomeWidget {
     intro_widget: IntroWidget,
@@ -25,31 +31,46 @@ pub struct WelcomeWidget {
     recompiling_notice: RecompilingNotice,
     pub recompiling: bool,
     to_clear: bool,
-    state: Option<State>,
+    state: State,
+    upper_state: Option<crate::app::State>,
 }
 
 impl TuiWidget for WelcomeWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
-        match key_event.code {
-            KeyCode::Up => {
-                if self.recompiling {
-                    self.recompiling_notice.move_up();
-                } else {
+        match self.state {
+            State::Initial => match key_event.code {
+                KeyCode::Up => {
                     self.select_previous();
                 }
-            }
-            KeyCode::Down => {
-                if self.recompiling {
-                    self.recompiling_notice.move_down();
-                } else {
+                KeyCode::Down => {
                     self.select_next();
                 }
-            }
-            KeyCode::Enter => {
-                self.state = Some(self.select_state());
-            }
-            _ => {}
-        };
+                KeyCode::Enter => {
+                    if let Some(selected) = self.select_test_widget.selected() {
+                        match selected {
+                            0 => self.upper_state = Some(crate::app::State::Welcome),
+                            1 => self.upper_state = Some(crate::app::State::ErrorHandling),
+                            2 => self.upper_state = Some(crate::app::State::OutputTests),
+                            3 => self.upper_state = Some(crate::app::State::PacketTests),
+                            4 => self.upper_state = Some(crate::app::State::PerformanceTests),
+                            5 => {
+                                self.state = State::Recompiling;
+                                self.recompiling_notice.clear_output();
+                                self.recompiling_notice.start();
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                KeyCode::Char('q') => self.upper_state = Some(crate::app::State::Exit),
+                _ => {}
+            },
+            State::Recompiling => match key_event.code {
+                KeyCode::Up => self.recompiling_notice.move_up(),
+                KeyCode::Down => self.recompiling_notice.move_down(),
+                _ => {}
+            },
+        }
     }
 
     fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
@@ -101,6 +122,10 @@ impl TuiWidget for WelcomeWidget {
     fn to_clear(&self) -> bool {
         self.to_clear
     }
+
+    fn state(&mut self) -> Option<crate::app::State> {
+        self.upper_state.take()
+    }
 }
 
 impl WelcomeWidget {
@@ -125,7 +150,8 @@ impl WelcomeWidget {
                 " ↑/↓: Move Up/Down | Enter: Select | Q: Exit ".to_string(),
             ),
             to_clear: true,
-            state: None,
+            state: State::default(),
+            upper_state: None,
         }
     }
 
@@ -135,34 +161,5 @@ impl WelcomeWidget {
 
     pub fn select_next(&mut self) {
         self.select_test_widget.select_next();
-    }
-
-    pub fn recompile(&mut self, val: bool) {
-        self.recompiling = val;
-        if val {
-            self.recompiling_notice.clear_output();
-            self.recompiling_notice.start();
-        }
-    }
-
-    pub fn select_state(&mut self) -> State {
-        let index = self.select_test_widget.selected().unwrap();
-
-        match index {
-            0 => State::Welcome,
-            1 => State::ErrorHandling,
-            2 => State::OutputTests,
-            3 => State::PacketTests,
-            4 => State::PerformanceTests,
-            5 => {
-                self.recompile(true);
-                State::Welcome
-            }
-            _ => State::Invalid,
-        }
-    }
-
-    pub fn selected(&mut self) -> Option<State> {
-        self.state.take()
     }
 }

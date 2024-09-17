@@ -34,12 +34,18 @@ pub struct OutputTestsWidget {
     tests_idx: usize,
     to_clear: bool,
     state: State,
+    upper_state: Option<crate::app::State>,
 }
 
 impl TuiWidget for OutputTestsWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match self.state {
             State::Interactive => match key_event.code {
+                KeyCode::Char('q') => {
+                    self.upper_state = Some(crate::app::State::Welcome);
+                    self.reset_test_index();
+                    self.summary_widget.clear_results();
+                }
                 KeyCode::Char(' ') => {
                     if !self.running && !self.to_run {
                         self.to_run = true;
@@ -71,6 +77,10 @@ impl TuiWidget for OutputTestsWidget {
 
     fn to_clear(&self) -> bool {
         self.to_clear
+    }
+
+    fn state(&mut self) -> Option<crate::app::State> {
+        self.upper_state.take()
     }
 }
 
@@ -149,6 +159,7 @@ impl OutputTestsWidget {
             tests_idx: usize::default(),
             to_clear: false,
             state: State::default(),
+            upper_state: None,
         }
     }
 

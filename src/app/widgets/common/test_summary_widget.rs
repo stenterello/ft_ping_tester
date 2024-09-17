@@ -28,7 +28,10 @@ impl TestSummaryWidget {
     }
 
     pub fn set_result(&mut self, result: TestResult) -> () {
-        self.test_results.last_mut().unwrap().1 = result;
+        match self.test_results.last_mut() {
+            Some(r) => r.1 = result,
+            None => {}
+        }
     }
 
     fn move_up(&mut self) {
@@ -43,6 +46,10 @@ impl TestSummaryWidget {
         {
             self.vertical_scroll += 1;
         }
+    }
+
+    pub fn clear_results(&mut self) -> () {
+        self.test_results.clear();
     }
 }
 
