@@ -4,6 +4,7 @@ use crate::app::utils::enums::{TestResult, TextType};
 use crate::app::widgets::common::commands_widget::CommandsWidget;
 use crate::app::widgets::common::message_widget::MessageWidget;
 use crate::app::widgets::common::output_viewer::OutputViewer;
+use crate::app::widgets::common::processing_widget::ProcessingWidget;
 use crate::app::widgets::common::test_summary_widget::TestSummaryWidget;
 use crate::app::widgets::traits::comparer::Comparer;
 use ratatui::layout::{Constraint, Layout};
@@ -17,18 +18,33 @@ pub enum Viewer {
     Ping,
 }
 
-pub trait ThreadStringPuller: Comparer {
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+
+pub trait ThreadStringPuller: Comparer + TuiWidget {
     fn get_actual_test(&self) -> Option<&Value>;
+    fn tests(&self) -> &Value;
+    fn tests_idx(&self) -> usize;
     fn summary_widget(&mut self) -> &mut TestSummaryWidget;
     fn message_widget(&mut self) -> &mut MessageWidget;
+    fn processing_widget(&mut self) -> &mut ProcessingWidget;
     fn output_viewer(&mut self, v: Viewer) -> &mut OutputViewer;
+    fn running(&self) -> bool;
     fn set_running(&mut self, v: bool) -> ();
+    fn to_run(&self) -> bool;
+    fn set_to_run(&mut self, v: bool) -> ();
     fn increment_test_index(&mut self) -> ();
     fn set_finished(&mut self) -> ();
 
     fn run_processes(&mut self) {
         match self.get_actual_test() {
             Some(test) => {
+                let mut file = OpenOptions::new()
+                    .write(true)
+                    .append(true)
+                    .open("ciao.txt")
+                    .unwrap();
+
                 let arguments_vec = match test.as_array() {
                     Some(s) => s
                         .iter()
@@ -36,6 +52,12 @@ pub trait ThreadStringPuller: Comparer {
                         .collect(),
                     None => Vec::new(),
                 };
+
+                for arg in &arguments_vec {
+                    if let Err(e) = writeln!(file, "{}", arg) {
+                        eprintln!("Couldn't write to file: {}", e);
+                    }
+                }
 
                 self.summary_widget().add_test(arguments_vec.join(" "));
                 self.message_widget().set_arguments(arguments_vec.join(" "));
@@ -90,13 +112,72 @@ pub trait ThreadStringPuller: Comparer {
 
         Ok(())
     }
+
+    fn batch_mode(&mut self) -> Result<()> {
+        let tests_len = self.tests().as_array().unwrap().len();
+        let ratio = tests_len as f64 / 100f64 * (self.tests_idx() + 1) as f64 / 10f64;
+        self.processing_widget().set_ratio(ratio);
+
+        if !self.running() && self.tests_idx() != tests_len - 1 {
+            self.run_processes();
+            self.set_to_run(false);
+        } else if self.running() {
+            match self.check_treads() {
+                Ok(_) => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        let (mut ft_ping_text, ping_text): (Vec<String>, Vec<String>) = (
+            self.output_viewer(Viewer::FtPing).get_output(),
+            self.output_viewer(Viewer::Ping).get_output(),
+        );
+
+        let (mut ft_ping_error_text, mut ping_error_text): (Vec<String>, Vec<String>) = (
+            self.output_viewer(Viewer::FtPing).get_error_output(),
+            self.output_viewer(Viewer::Ping).get_error_output(),
+        );
+
+        let (mut ft_useful_error_text, qqq) =
+            <Self as Comparer>::remove_path(&mut ft_ping_error_text);
+        let (ping_useful_error_text, www) = <Self as Comparer>::remove_path(&mut ping_error_text);
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("ciao.txt")
+            .unwrap();
+
+        if !ft_useful_error_text.is_empty() {
+            if let Err(e) = writeln!(file, "1 {} | {}", ft_useful_error_text.get(0).unwrap(), qqq) {
+                eprintln!("Couldn't write to file: {}", e);
+            }
+        }
+        if !ping_useful_error_text.is_empty() {
+            if let Err(e) = writeln!(
+                file,
+                "2 {} | {}",
+                ping_useful_error_text.get(0).unwrap(),
+                www
+            ) {
+                eprintln!("Couldn't write to file: {}", e);
+            }
+        }
+        let _ = TextType::Formatted(self.compare_output(&mut ft_ping_text, &ping_text));
+        let _ = TextType::Formatted(
+            self.compare_output(&mut ft_useful_error_text, &ping_useful_error_text),
+        );
+        let res: TestResult = match !self.message_widget().errors() {
+            true => TestResult::Correct,
+            false => TestResult::Incorrect,
+        };
+        self.summary_widget().set_result(res);
+        Ok(())
+    }
 }
 
-pub trait ThreadStringPullerWidget: ThreadStringPuller + TuiWidget {
+pub trait ThreadStringPullerWidget: ThreadStringPuller {
     fn commands_widget(&mut self) -> &mut CommandsWidget;
-    fn running(&self) -> bool;
-    fn to_run(&self) -> bool;
-    fn set_to_run(&mut self, v: bool) -> ();
 
     fn draw_interactive_mode(&mut self, frame: &mut Frame) -> Result<()> {
         if !self.running() && self.to_run() {

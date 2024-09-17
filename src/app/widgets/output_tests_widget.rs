@@ -13,6 +13,8 @@ use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::Frame;
 use serde_json::Value;
 
+use super::common::processing_widget::ProcessingWidget;
+
 #[derive(Debug, Default)]
 enum State {
     #[default]
@@ -27,6 +29,7 @@ pub struct OutputTestsWidget {
     message_widget: MessageWidget,
     commands_widget: CommandsWidget,
     summary_widget: TestSummaryWidget,
+    processing_widget: ProcessingWidget,
     running: bool,
     finished: bool,
     to_run: bool,
@@ -95,12 +98,24 @@ impl ThreadStringPuller for OutputTestsWidget {
         self.tests.get(self.tests_idx)
     }
 
+    fn tests(&self) -> &Value {
+        &self.tests
+    }
+
+    fn tests_idx(&self) -> usize {
+        self.tests_idx
+    }
+
     fn summary_widget(&mut self) -> &mut TestSummaryWidget {
         &mut self.summary_widget
     }
 
     fn message_widget(&mut self) -> &mut MessageWidget {
         &mut self.message_widget
+    }
+
+    fn processing_widget(&mut self) -> &mut super::common::processing_widget::ProcessingWidget {
+        &mut self.processing_widget
     }
 
     fn output_viewer(&mut self, v: Viewer) -> &mut OutputViewer {
@@ -112,6 +127,18 @@ impl ThreadStringPuller for OutputTestsWidget {
 
     fn set_running(&mut self, v: bool) -> () {
         self.running = v;
+    }
+
+    fn running(&self) -> bool {
+        self.running
+    }
+
+    fn to_run(&self) -> bool {
+        self.to_run
+    }
+
+    fn set_to_run(&mut self, v: bool) -> () {
+        self.to_run = v;
     }
 
     fn increment_test_index(&mut self) -> () {
@@ -127,18 +154,6 @@ impl ThreadStringPullerWidget for OutputTestsWidget {
     fn commands_widget(&mut self) -> &mut CommandsWidget {
         &mut self.commands_widget
     }
-
-    fn running(&self) -> bool {
-        self.running
-    }
-
-    fn to_run(&self) -> bool {
-        self.to_run
-    }
-
-    fn set_to_run(&mut self, v: bool) -> () {
-        self.to_run = v;
-    }
 }
 
 impl OutputTestsWidget {
@@ -152,6 +167,7 @@ impl OutputTestsWidget {
             message_widget: MessageWidget::default(),
             commands_widget: CommandsWidget::new(" Q: Back | Space: Next test ".to_string()),
             summary_widget: TestSummaryWidget::default(),
+            processing_widget: ProcessingWidget::default(),
             running: false,
             finished: false,
             to_run: true,

@@ -16,6 +16,8 @@ use ratatui::{
 use serde_json::Value;
 use std::io::Result;
 
+use super::common::processing_widget::ProcessingWidget;
+
 #[derive(Debug, Default)]
 enum State {
     #[default]
@@ -33,6 +35,7 @@ pub struct ErrorHandling {
     message_widget: MessageWidget,
     commands_widget: CommandsWidget,
     summary_widget: TestSummaryWidget,
+    processing_widget: ProcessingWidget,
     running: bool,
     to_run: bool,
     tests: Value,
@@ -83,7 +86,14 @@ impl TuiWidget for ErrorHandling {
         match self.state {
             State::ChooseMethod => self.choose_method_widget.draw(frame),
             State::Interactive => self.draw_interactive_mode(frame),
-            State::Batch => Ok(()),
+            State::Batch => {
+                let ret = self.batch_mode();
+                frame.render_widget(&self.processing_widget, frame.size());
+                if self.tests_idx == self.tests.as_array().unwrap().len() - 1 {
+                    self.state = State::Summary;
+                }
+                ret
+            }
             State::Summary => {
                 frame.render_widget(&self.summary_widget, frame.size());
                 Ok(())
@@ -115,12 +125,24 @@ impl ThreadStringPuller for ErrorHandling {
         self.tests.get(self.tests_idx)
     }
 
+    fn tests(&self) -> &Value {
+        &self.tests
+    }
+
+    fn tests_idx(&self) -> usize {
+        self.tests_idx
+    }
+
     fn summary_widget(&mut self) -> &mut TestSummaryWidget {
         &mut self.summary_widget
     }
 
     fn message_widget(&mut self) -> &mut MessageWidget {
         &mut self.message_widget
+    }
+
+    fn processing_widget(&mut self) -> &mut ProcessingWidget {
+        &mut self.processing_widget
     }
 
     fn output_viewer(&mut self, v: Viewer) -> &mut OutputViewer {
@@ -132,6 +154,18 @@ impl ThreadStringPuller for ErrorHandling {
 
     fn set_running(&mut self, v: bool) -> () {
         self.running = v;
+    }
+
+    fn running(&self) -> bool {
+        self.running
+    }
+
+    fn to_run(&self) -> bool {
+        self.to_run
+    }
+
+    fn set_to_run(&mut self, v: bool) -> () {
+        self.to_run = v;
     }
 
     fn increment_test_index(&mut self) -> () {
@@ -146,18 +180,6 @@ impl ThreadStringPuller for ErrorHandling {
 impl ThreadStringPullerWidget for ErrorHandling {
     fn commands_widget(&mut self) -> &mut CommandsWidget {
         &mut self.commands_widget
-    }
-
-    fn running(&self) -> bool {
-        self.running
-    }
-
-    fn to_run(&self) -> bool {
-        self.to_run
-    }
-
-    fn set_to_run(&mut self, v: bool) -> () {
-        self.to_run = v;
     }
 }
 
@@ -176,6 +198,7 @@ impl ErrorHandling {
             message_widget: MessageWidget::default(),
             commands_widget: CommandsWidget::new(" Q: Back | Space: Next test ".to_string()),
             summary_widget: TestSummaryWidget::default(),
+            processing_widget: ProcessingWidget::default(),
             running: false,
             to_run: true,
             tests,
