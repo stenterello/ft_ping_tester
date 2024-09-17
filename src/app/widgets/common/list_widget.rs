@@ -1,6 +1,6 @@
 use ratatui::layout::{Constraint, Flex, Layout};
 use ratatui::text::Text;
-use ratatui::widgets::{ListItem, Padding};
+use ratatui::widgets::ListItem;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},

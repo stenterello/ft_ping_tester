@@ -1,6 +1,6 @@
-use crate::traits::tui_widget::TuiWidget;
-use crate::widgets::common::commands_widget::CommandsWidget;
-use crate::widgets::common::list_widget::{ListAlignment, ListWidget};
+use crate::app::widgets::common::commands_widget::CommandsWidget;
+use crate::app::widgets::common::list_widget::{ListAlignment, ListWidget};
+use crate::app::widgets::traits::tui_widget::TuiWidget;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Constraint, Layout};
 use ratatui::Frame;

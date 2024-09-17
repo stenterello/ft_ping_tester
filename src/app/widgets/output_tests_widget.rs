@@ -1,11 +1,13 @@
-use crate::traits::comparer::Comparer;
-use crate::traits::thread_stringpuller::{ThreadStringPuller, ThreadStringPullerWidget, Viewer};
-use crate::traits::tui_widget::TuiWidget;
-use crate::utils::config::config_extractor::Locations;
-use crate::widgets::common::commands_widget::CommandsWidget;
-use crate::widgets::common::message_widget::MessageWidget;
-use crate::widgets::common::output_viewer::OutputViewer;
-use crate::widgets::common::test_summary_widget::TestSummaryWidget;
+use crate::app::utils::config::config_extractor::Locations;
+use crate::app::widgets::common::commands_widget::CommandsWidget;
+use crate::app::widgets::common::message_widget::MessageWidget;
+use crate::app::widgets::common::output_viewer::OutputViewer;
+use crate::app::widgets::common::test_summary_widget::TestSummaryWidget;
+use crate::app::widgets::traits::comparer::Comparer;
+use crate::app::widgets::traits::thread_stringpuller::{
+    ThreadStringPuller, ThreadStringPullerWidget, Viewer,
+};
+use crate::app::widgets::traits::tui_widget::TuiWidget;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::Frame;

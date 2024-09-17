@@ -1,10 +1,7 @@
 mod app;
-mod traits;
 mod tui;
-mod utils;
-mod widgets;
 
-use crate::app::app::App;
+use crate::app::App;
 use crate::tui::Tui;
 use std::io::Result;
 

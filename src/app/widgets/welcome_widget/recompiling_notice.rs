@@ -10,7 +10,7 @@ use ratatui::{
 };
 use std::cell::RefCell;
 
-use crate::utils::thread::Thread;
+use crate::app::utils::thread::Thread;
 
 #[derive(Debug)]
 pub struct RecompilingNotice {

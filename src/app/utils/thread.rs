@@ -1,4 +1,4 @@
-use crate::utils::subprocess::SubProcess;
+use super::subprocess::SubProcess;
 use std::cell::RefCell;
 use std::io::Result;
 use std::sync::mpsc::Receiver;

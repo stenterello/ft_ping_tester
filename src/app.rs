@@ -1,10 +1,7 @@
-use crate::traits::tui_widget::TuiWidget;
+mod utils;
+mod widgets;
+
 use crate::tui::Tui;
-use crate::utils::config::config_extractor::{ConfigExtractor, ConfigValues};
-use crate::utils::config::test_config_extractor::TestConfigExtractor;
-use crate::widgets::error_handling::ErrorHandling;
-use crate::widgets::output_tests_widget::OutputTestsWidget;
-use crate::widgets::welcome_widget::WelcomeWidget;
 use ratatui::{
     crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
     Frame,
@@ -13,6 +10,12 @@ use std::{
     io::{Error, ErrorKind, Result},
     time::Duration,
 };
+use utils::config::config_extractor::{ConfigExtractor, ConfigValues};
+use utils::config::test_config_extractor::TestConfigExtractor;
+use widgets::error_handling::ErrorHandling;
+use widgets::output_tests_widget::OutputTestsWidget;
+use widgets::traits::tui_widget::TuiWidget;
+use widgets::welcome_widget::WelcomeWidget;
 
 const CONF_FILE: &str = "./config.toml";
 
@@ -102,6 +105,7 @@ impl App {
                     self.welcome_widget.recompile(false);
                 } else if self.state == State::ErrorHandling {
                     self.state = State::Welcome;
+                    self.welcome_widget.set_to_clear(true);
                     self.error_handling_widget.reset_test_index();
                 } else if self.state == State::OutputTests {
                     self.state = State::Welcome;

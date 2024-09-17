@@ -1,5 +1,5 @@
-use crate::traits::tui_widget::TuiWidget;
-use crate::utils::enums::TestResult;
+use crate::app::utils::enums::TestResult;
+use crate::app::widgets::traits::tui_widget::TuiWidget;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Alignment, Margin};
 use ratatui::prelude::{Color, Style, Stylize};

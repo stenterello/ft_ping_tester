@@ -1,6 +1,6 @@
-use crate::traits::thread_launcher::ThreadLauncher;
-use crate::utils::enums::TextType;
-use crate::utils::thread::Thread;
+use crate::app::utils::enums::TextType;
+use crate::app::utils::thread::Thread;
+use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},

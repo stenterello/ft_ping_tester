@@ -1,11 +1,11 @@
 use super::thread_launcher::ThreadLauncher;
 use super::tui_widget::TuiWidget;
-use crate::traits::comparer::Comparer;
-use crate::utils::enums::{TestResult, TextType};
-use crate::widgets::common::commands_widget::CommandsWidget;
-use crate::widgets::common::message_widget::MessageWidget;
-use crate::widgets::common::output_viewer::OutputViewer;
-use crate::widgets::common::test_summary_widget::TestSummaryWidget;
+use crate::app::utils::enums::{TestResult, TextType};
+use crate::app::widgets::common::commands_widget::CommandsWidget;
+use crate::app::widgets::common::message_widget::MessageWidget;
+use crate::app::widgets::common::output_viewer::OutputViewer;
+use crate::app::widgets::common::test_summary_widget::TestSummaryWidget;
+use crate::app::widgets::traits::comparer::Comparer;
 use ratatui::layout::{Constraint, Layout};
 use ratatui::widgets::Clear;
 use ratatui::Frame;

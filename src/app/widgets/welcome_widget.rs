@@ -2,10 +2,10 @@ mod info_widget;
 mod intro_widget;
 mod recompiling_notice;
 
-use crate::app::app::State;
-use crate::traits::tui_widget::TuiWidget;
-use crate::widgets::common::commands_widget::CommandsWidget;
-use crate::widgets::common::list_widget::ListWidget;
+use crate::app::widgets::common::commands_widget::CommandsWidget;
+use crate::app::widgets::common::list_widget::ListWidget;
+use crate::app::widgets::traits::tui_widget::TuiWidget;
+use crate::app::State;
 use info_widget::InfoWidget;
 use intro_widget::IntroWidget;
 use ratatui::{
