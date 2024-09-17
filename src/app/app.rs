@@ -105,6 +105,7 @@ impl App {
                     self.error_handling_widget.reset_test_index();
                 } else if self.state == State::OutputTests {
                     self.state = State::Welcome;
+                    self.welcome_widget.set_to_clear(true);
                     self.output_tests_widget.reset_test_index();
                 } else {
                     self.exit();
@@ -140,7 +141,10 @@ impl App {
         }
 
         match &self.state {
-            State::Welcome => self.state = self.welcome_widget.select_state(),
+            State::Welcome => {
+                self.state = self.welcome_widget.select_state();
+                self.welcome_widget.set_to_clear(true);
+            }
             _ => {}
         };
     }

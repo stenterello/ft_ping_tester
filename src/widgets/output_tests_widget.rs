@@ -62,6 +62,14 @@ impl TuiWidget for OutputTestsWidget {
             }
         }
     }
+
+    fn set_to_clear(&mut self, v: bool) -> () {
+        self.to_clear = v;
+    }
+
+    fn to_clear(&self) -> bool {
+        self.to_clear
+    }
 }
 
 impl Comparer for OutputTestsWidget {
@@ -116,16 +124,8 @@ impl ThreadStringPullerWidget for OutputTestsWidget {
         self.to_run
     }
 
-    fn to_clear(&self) -> bool {
-        self.to_clear
-    }
-
     fn set_to_run(&mut self, v: bool) -> () {
         self.to_run = v;
-    }
-
-    fn set_to_clear(&mut self, v: bool) -> () {
-        self.to_clear = v;
     }
 }
 

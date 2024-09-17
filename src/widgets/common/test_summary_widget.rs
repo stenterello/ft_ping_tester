@@ -62,6 +62,11 @@ impl TuiWidget for TestSummaryWidget {
     fn draw(&mut self, _frame: &mut ratatui::Frame) -> std::io::Result<()> {
         Ok(())
     }
+
+    fn set_to_clear(&mut self, _v: bool) -> () {}
+    fn to_clear(&self) -> bool {
+        false
+    }
 }
 
 impl Widget for &TestSummaryWidget {

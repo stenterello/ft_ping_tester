@@ -62,4 +62,9 @@ impl TuiWidget for ChooseTestMethod {
         );
         Ok(())
     }
+
+    fn set_to_clear(&mut self, _v: bool) -> () {}
+    fn to_clear(&self) -> bool {
+        false
+    }
 }

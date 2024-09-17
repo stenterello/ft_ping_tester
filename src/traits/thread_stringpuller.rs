@@ -96,9 +96,7 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller + TuiWidget {
     fn commands_widget(&mut self) -> &mut CommandsWidget;
     fn running(&self) -> bool;
     fn to_run(&self) -> bool;
-    fn to_clear(&self) -> bool;
     fn set_to_run(&mut self, v: bool) -> ();
-    fn set_to_clear(&mut self, v: bool) -> ();
 
     fn draw_interactive_mode(&mut self, frame: &mut Frame) -> Result<()> {
         if !self.running() && self.to_run() {

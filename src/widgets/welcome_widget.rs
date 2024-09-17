@@ -24,6 +24,7 @@ pub struct WelcomeWidget {
     commands_widget: CommandsWidget,
     recompiling_notice: RecompilingNotice,
     pub recompiling: bool,
+    to_clear: bool,
 }
 
 impl TuiWidget for WelcomeWidget {
@@ -48,7 +49,11 @@ impl TuiWidget for WelcomeWidget {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
-        // Intro Widget
+        if self.to_clear() {
+            frame.render_widget(Clear, frame.size());
+            self.set_to_clear(false);
+            return Ok(());
+        }
         let [upper_area, lower_area, commands_area] = Layout::vertical([
             Constraint::Percentage(75),
             Constraint::Percentage(35),
@@ -57,14 +62,12 @@ impl TuiWidget for WelcomeWidget {
         .areas(frame.size());
         frame.render_widget(&self.intro_widget, upper_area);
 
-        // Select Test Widget
         let [lower_left_area, lower_right_area] =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .areas(lower_area);
         let mut test = self.select_test_widget.get_state();
         frame.render_stateful_widget(&self.select_test_widget, lower_left_area, &mut test);
 
-        // Info Widget
         frame.render_widget(&self.info_widget, lower_right_area);
         frame.render_widget(&self.commands_widget, commands_area);
 
@@ -85,6 +88,14 @@ impl TuiWidget for WelcomeWidget {
             frame.render_widget(&self.recompiling_notice, center_hv_area);
         }
         Ok(())
+    }
+
+    fn set_to_clear(&mut self, v: bool) -> () {
+        self.to_clear = v;
+    }
+
+    fn to_clear(&self) -> bool {
+        self.to_clear
     }
 }
 
@@ -109,6 +120,7 @@ impl WelcomeWidget {
             commands_widget: CommandsWidget::new(
                 " ↑/↓: Move Up/Down | Enter: Select | Q: Exit ".to_string(),
             ),
+            to_clear: true,
         }
     }
 
