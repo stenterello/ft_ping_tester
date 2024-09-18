@@ -114,14 +114,21 @@ impl ThreadStringPuller for OutputTestsWidget {
         &mut self.message_widget
     }
 
-    fn processing_widget(&mut self) -> &mut super::common::processing_widget::ProcessingWidget {
+    fn processing_widget(&mut self) -> &mut ProcessingWidget {
         &mut self.processing_widget
     }
 
-    fn output_viewer(&mut self, v: Viewer) -> &mut OutputViewer {
+    fn output_viewer_mut(&mut self, v: Viewer) -> &mut OutputViewer {
         match v {
             Viewer::FtPing => &mut self.ft_ping_output_viewer,
             Viewer::Ping => &mut self.ping_output_viewer,
+        }
+    }
+
+    fn output_viewer(&self, v: Viewer) -> &OutputViewer {
+        match v {
+            Viewer::FtPing => &self.ft_ping_output_viewer,
+            Viewer::Ping => &self.ping_output_viewer,
         }
     }
 

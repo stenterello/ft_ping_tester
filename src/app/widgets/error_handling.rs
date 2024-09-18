@@ -145,19 +145,26 @@ impl ThreadStringPuller for ErrorHandling {
         &mut self.processing_widget
     }
 
-    fn output_viewer(&mut self, v: Viewer) -> &mut OutputViewer {
+    fn output_viewer_mut(&mut self, v: Viewer) -> &mut OutputViewer {
         match v {
             Viewer::FtPing => &mut self.ft_ping_output_viewer,
             Viewer::Ping => &mut self.ping_output_viewer,
         }
     }
 
-    fn set_running(&mut self, v: bool) -> () {
-        self.running = v;
+    fn output_viewer(&self, v: Viewer) -> &OutputViewer {
+        match v {
+            Viewer::FtPing => &self.ft_ping_output_viewer,
+            Viewer::Ping => &self.ping_output_viewer,
+        }
     }
 
     fn running(&self) -> bool {
         self.running
+    }
+
+    fn set_running(&mut self, v: bool) -> () {
+        self.running = v;
     }
 
     fn to_run(&self) -> bool {

@@ -58,16 +58,6 @@ impl OutputViewer {
         self.thread.take_error_output()
     }
 
-    pub fn get_error_message(&mut self) -> String {
-        match self.get_error_output().len() {
-            0 => match self.thread.get_exit() {
-                (None, Some(err)) => err,
-                _ => String::default(),
-            },
-            _ => self.get_error_output().join("\n"),
-        }
-    }
-
     pub fn set_text_to_display(&mut self, display: TextType) -> () {
         self.text_to_display = display;
     }
@@ -77,8 +67,8 @@ impl OutputViewer {
     }
 
     pub fn clear_buffers(&mut self) {
-        self.text_to_display = TextType::Standard(Vec::default());
-        self.error_to_display = TextType::Standard(Vec::default());
+        self.text_to_display.clear();
+        self.error_to_display.clear();
         self.thread.clear_buffers();
     }
 

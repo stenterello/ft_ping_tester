@@ -4,6 +4,15 @@ pub enum TextType {
     Formatted(Vec<Vec<(bool, u8)>>),
 }
 
+impl TextType {
+    pub fn clear(&mut self) -> () {
+        match self {
+            TextType::Standard(vec) => vec.clear(),
+            TextType::Formatted(vec) => vec.clear()
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub enum TestResult {
     Correct,

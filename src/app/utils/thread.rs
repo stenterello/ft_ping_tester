@@ -91,13 +91,10 @@ impl Thread {
         if self.is_running() {
             (None, None)
         } else {
-            let command = self.command.lock().unwrap();
-            let code = command.exit.borrow();
-
-            match &*code {
-                (Some(r), _) => (Some(r.clone()), None),
-                (_, Some(err)) => (None, Some(err.to_string())),
-                _ => (None, None),
+            match &*self.command.lock().unwrap().exit.borrow() {
+                (Some(r), None) => (Some(*r), None),
+                (Some(code), Some(err)) => (Some(*code), Some(err.to_string())),
+                (None, _) => (None, None),
             }
         }
     }

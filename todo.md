@@ -1,6 +1,6 @@
 add commands description in app
 widgets which scroll all the way down when text is higher than widget
-add check on exit code of ping and ft_ping
+add check on exit code of ping and ft_ping - you have to manually cause a segfault and check the behaviour
 terminate threads when exit error handling widget
 
 Per appendere a file

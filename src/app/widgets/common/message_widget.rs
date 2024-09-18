@@ -8,12 +8,14 @@ use ratatui::{
         Paragraph, Widget, Wrap,
     },
 };
+use crate::app::widgets::traits::thread_stringpuller::ExitResult;
 
 #[derive(Debug, Default)]
 pub struct MessageWidget {
     running_test: bool,
     arguments: String,
     has_errors: bool,
+    codes: (i32, i32),
 }
 
 impl MessageWidget {
@@ -22,6 +24,7 @@ impl MessageWidget {
             running_test: false,
             arguments: String::default(),
             has_errors: false,
+            codes: (-1, -1),
         }
     }
 
@@ -43,6 +46,23 @@ impl MessageWidget {
 
     pub fn set_errors(&mut self, val: bool) -> () {
         self.has_errors = val;
+    }
+
+    pub fn set_codes(&mut self, ft_exit: ExitResult, ping_exit: ExitResult) -> () {
+        match ft_exit {
+            ExitResult::Correct(code) => self.codes.0 = code,
+            ExitResult::Error(code, _) => self.codes.0 = code,
+            ExitResult::None => self.codes.0 = 127
+        };
+        match ping_exit {
+            ExitResult::Correct(code) => self.codes.1 = code,
+            ExitResult::Error(code, _) => self.codes.1 = code,
+            ExitResult::None => self.codes.0 = 127
+        };
+
+        if self.codes.0 != self.codes.1 {
+            self.set_errors(true);
+        }
     }
 }
 
@@ -79,6 +99,10 @@ impl Widget for &MessageWidget {
                         "🟢 CORRECT!"
                     }
                 ))));
+                ret.push(Line::from(Span::from(format!("Exit codes: {{ ft_ping: {}, ping: {}}}", self.codes.0, self.codes.1))));
+                if self.codes.0 == 127 {
+                    ret.push(Line::from(Span::from("Maybe segfault on ft_ping")));
+                }
             }
             ret
         };

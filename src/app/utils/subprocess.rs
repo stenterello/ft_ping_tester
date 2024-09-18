@@ -60,10 +60,7 @@ impl SubProcess {
         match child.wait() {
             Ok(r) => {
                 *stat = (
-                    Some(match r.code() {
-                        Some(n) => n,
-                        None => 127,
-                    }),
+                    Some(r.code().unwrap_or_else(|| 127)),
                     None,
                 );
             }
