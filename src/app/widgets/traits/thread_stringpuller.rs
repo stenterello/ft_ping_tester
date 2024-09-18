@@ -18,9 +18,6 @@ pub enum Viewer {
     Ping,
 }
 
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-
 pub trait ThreadStringPuller: Comparer + TuiWidget {
     fn get_actual_test(&self) -> Option<&Value>;
     fn tests(&self) -> &Value;
@@ -39,12 +36,6 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
     fn run_processes(&mut self) {
         match self.get_actual_test() {
             Some(test) => {
-                let mut file = OpenOptions::new()
-                    .write(true)
-                    .append(true)
-                    .open("ciao.txt")
-                    .unwrap();
-
                 let arguments_vec = match test.as_array() {
                     Some(s) => s
                         .iter()
@@ -52,12 +43,6 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
                         .collect(),
                     None => Vec::new(),
                 };
-
-                for arg in &arguments_vec {
-                    if let Err(e) = writeln!(file, "{}", arg) {
-                        eprintln!("Couldn't write to file: {}", e);
-                    }
-                }
 
                 self.summary_widget().add_test(arguments_vec.join(" "));
                 self.message_widget().set_arguments(arguments_vec.join(" "));
@@ -127,40 +112,19 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
         }
 
         let (mut ft_ping_text, ping_text): (Vec<String>, Vec<String>) = (
-            self.output_viewer(Viewer::FtPing).get_output(),
-            self.output_viewer(Viewer::Ping).get_output(),
+            self.output_viewer(Viewer::FtPing).take_output(),
+            self.output_viewer(Viewer::Ping).take_output(),
         );
 
         let (mut ft_ping_error_text, mut ping_error_text): (Vec<String>, Vec<String>) = (
-            self.output_viewer(Viewer::FtPing).get_error_output(),
-            self.output_viewer(Viewer::Ping).get_error_output(),
+            self.output_viewer(Viewer::FtPing).take_error_output(),
+            self.output_viewer(Viewer::Ping).take_error_output(),
         );
 
         let (mut ft_useful_error_text, qqq) =
             <Self as Comparer>::remove_path(&mut ft_ping_error_text);
         let (ping_useful_error_text, www) = <Self as Comparer>::remove_path(&mut ping_error_text);
 
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open("ciao.txt")
-            .unwrap();
-
-        if !ft_useful_error_text.is_empty() {
-            if let Err(e) = writeln!(file, "1 {} | {}", ft_useful_error_text.get(0).unwrap(), qqq) {
-                eprintln!("Couldn't write to file: {}", e);
-            }
-        }
-        if !ping_useful_error_text.is_empty() {
-            if let Err(e) = writeln!(
-                file,
-                "2 {} | {}",
-                ping_useful_error_text.get(0).unwrap(),
-                www
-            ) {
-                eprintln!("Couldn't write to file: {}", e);
-            }
-        }
         let _ = TextType::Formatted(self.compare_output(&mut ft_ping_text, &ping_text));
         let _ = TextType::Formatted(
             self.compare_output(&mut ft_useful_error_text, &ping_useful_error_text),

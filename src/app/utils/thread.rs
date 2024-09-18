@@ -56,12 +56,28 @@ impl Thread {
         self.output.borrow().clone()
     }
 
+    pub fn take_output(&self) -> Vec<String> {
+        match self.rx.try_recv() {
+            Ok(received) => self.output.borrow_mut().push(received),
+            _ => {}
+        };
+        self.output.take()
+    }
+
     pub fn get_error_output(&self) -> Vec<String> {
         match self.error_rx.try_recv() {
             Ok(received) => self.error_output.borrow_mut().push(received),
             _ => {}
         };
         self.error_output.borrow().clone()
+    }
+
+    pub fn take_error_output(&self) -> Vec<String> {
+        match self.rx.try_recv() {
+            Ok(received) => self.error_output.borrow_mut().push(received),
+            _ => {}
+        };
+        self.error_output.take()
     }
 
     pub fn is_running(&self) -> bool {

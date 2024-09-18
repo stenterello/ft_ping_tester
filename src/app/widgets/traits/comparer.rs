@@ -1,9 +1,6 @@
 use itertools::{EitherOrBoth::*, Itertools};
 use std::path::Path;
 
-use std::fs::OpenOptions;
-use std::io::prelude::*;
-
 pub trait Comparer {
     fn set_errors(&mut self, val: bool) -> ();
 
@@ -39,12 +36,6 @@ pub trait Comparer {
     ) -> Vec<Vec<(bool, u8)>> {
         self.set_errors(false);
 
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open("ciao.txt")
-            .unwrap();
-
         if ft_ping_output.is_empty() && ping_output.is_empty() {
             return vec![];
         }
@@ -73,14 +64,6 @@ pub trait Comparer {
                             Some(nc) => {
                                 let eq = *c == *nc;
                                 if !eq {
-                                    if let Err(e) = writeln!(
-                                        file,
-                                        "76 setto errore {}, {}",
-                                        char::from_u32(*c as u32).unwrap(),
-                                        char::from_u32(*nc as u32).unwrap()
-                                    ) {
-                                        eprintln!("Couldn't write to file: {}", e);
-                                    }
                                     self.set_errors(true);
                                 }
                                 match ret.get_mut(ret_index) {
@@ -107,19 +90,11 @@ pub trait Comparer {
                             Some(_) => {}
                             None => ret.push(Vec::default()),
                         }
-                        if let Err(e) = writeln!(file, "105 setto errore") {
-                            eprintln!("Couldn't write to file: {}", e);
-                        }
                         ret[ret_index].push((false, *c));
                         self.set_errors(true);
                     });
                 }
-                Right(_) => {
-                    if let Err(e) = writeln!(file, "113 setto errore") {
-                        eprintln!("Couldn't write to file: {}", e);
-                    }
-                    self.set_errors(true);
-                }
+                Right(_) => self.set_errors(true),
             }
             ret_index += 1;
         }

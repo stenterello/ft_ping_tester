@@ -50,6 +50,14 @@ impl OutputViewer {
         self.thread.get_error_output()
     }
 
+    pub fn take_output(&self) -> Vec<String> {
+        self.thread.take_output()
+    }
+
+    pub fn take_error_output(&self) -> Vec<String> {
+        self.thread.take_error_output()
+    }
+
     pub fn get_error_message(&mut self) -> String {
         match self.get_error_output().len() {
             0 => match self.thread.get_exit() {
