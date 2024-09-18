@@ -88,8 +88,7 @@ impl Widget for &RecompilingNotice {
             .end_symbol(Some("v"));
 
         let mut scrollbar_state = ScrollbarState::default()
-            .content_length(text.lines().count())
-            .viewport_content_length(*h)
+            .content_length(5)
             .position(self.vertical_scroll);
 
         scrollbar.render(

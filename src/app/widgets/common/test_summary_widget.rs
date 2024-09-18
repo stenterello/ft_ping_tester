@@ -108,8 +108,7 @@ impl Widget for &TestSummaryWidget {
             .end_symbol(Some("v"));
 
         let mut scrollbar_state = ScrollbarState::default()
-            .content_length(*h)
-            .viewport_content_length(*h)
+            .content_length(5)
             .position(self.vertical_scroll);
 
         scrollbar.render(
