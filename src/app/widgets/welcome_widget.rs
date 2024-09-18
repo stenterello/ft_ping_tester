@@ -39,12 +39,8 @@ impl TuiWidget for WelcomeWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match self.state {
             State::Initial => match key_event.code {
-                KeyCode::Up => {
-                    self.select_previous();
-                }
-                KeyCode::Down => {
-                    self.select_next();
-                }
+                KeyCode::Up => self.select_previous(),
+                KeyCode::Down => self.select_next(),
                 KeyCode::Enter => {
                     if let Some(selected) = self.select_test_widget.selected() {
                         match selected {
@@ -129,7 +125,7 @@ impl TuiWidget for WelcomeWidget {
 }
 
 impl WelcomeWidget {
-    pub fn new(path: String) -> Self {
+    pub fn new(path: &str) -> Self {
         WelcomeWidget {
             select_test_widget: ListWidget::new(
                 " Choose test: ".into(),
@@ -143,12 +139,10 @@ impl WelcomeWidget {
                 ],
             ),
             recompiling_notice: RecompilingNotice::new(path),
-            recompiling: bool::default(),
+            recompiling: false,
             intro_widget: IntroWidget::default(),
             info_widget: InfoWidget::default(),
-            commands_widget: CommandsWidget::new(
-                " ↑/↓: Move Up/Down | Enter: Select | Q: Exit ".to_string(),
-            ),
+            commands_widget: CommandsWidget::new(" ↑/↓: Move Up/Down | Enter: Select | Q: Exit "),
             to_clear: true,
             state: State::default(),
             upper_state: None,

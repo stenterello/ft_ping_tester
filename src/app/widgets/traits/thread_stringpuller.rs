@@ -94,14 +94,12 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
     }
 
     fn check_treads(&mut self) -> Result<()> {
-        match self.check_thread_exit_status(Viewer::FtPing) {
-            Ok(_) => {}
-            Err(e) => return Err(e),
+        if let Err(e) = self.check_thread_exit_status(Viewer::FtPing) {
+            return Err(e);
         }
 
-        match self.check_thread_exit_status(Viewer::Ping) {
-            Ok(_) => {}
-            Err(e) => return Err(e),
+        if let Err(e) = self.check_thread_exit_status(Viewer::Ping) {
+            return Err(e);
         }
 
         if !self.output_viewer(Viewer::FtPing).is_running()

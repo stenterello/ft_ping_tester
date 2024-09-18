@@ -1,19 +1,14 @@
 use serde_derive::Deserialize;
 use std::fs;
+use std::io::{Error, ErrorKind, Result};
 use std::path::Path;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct Config {
-    pub config: Option<ConfigValues>,
-    pub valid: bool,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct ConfigValues {
     pub locations: Locations,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Default, Deserialize, Clone)]
 pub struct Locations {
     pub ft_ping_dir: String,
     pub ft_ping_name: String,
@@ -26,27 +21,35 @@ pub struct Locations {
 pub struct ConfigExtractor;
 
 impl ConfigExtractor {
-    pub fn decode(file: String) -> Config {
-        let contents = fs::read_to_string(file).expect("Unable to read config file");
-        let conf_values: ConfigValues = toml::from_str(&contents).unwrap();
+    pub fn decode(file: &str) -> Result<Config> {
+        let contents: String = match fs::read_to_string(file) {
+            Ok(s) => s,
+            Err(e) => return Err(e),
+        };
+        let conf: Config = match toml::from_str(&contents) {
+            Ok(values) => values,
+            Err(_) => {
+                return Err(Error::new(
+                    ErrorKind::InvalidData,
+                    "Unable to parse toml file.",
+                ))
+            }
+        };
 
-        let mut conf: Config = Config::default();
-        if !Path::new(conf_values.locations.ft_ping_dir.as_str()).exists()
-            || !Path::new(conf_values.locations.ping_dir.as_str()).exists()
-            || !Path::new(conf_values.locations.test_conf_path.as_str()).exists()
+        if !Path::new(conf.locations.ft_ping_dir.as_str()).exists()
+            || !Path::new(conf.locations.ping_dir.as_str()).exists()
+            || !Path::new(conf.locations.test_conf_path.as_str()).exists()
         {
-            eprintln!("Wrong paths in conf.toml");
-            conf.valid = false;
-        } else if !conf_values.locations.ft_ping_dir.ends_with('/')
-            || !conf_values.locations.ping_dir.ends_with('/')
+            Err(Error::new(ErrorKind::NotFound, "Wrong paths in conf.toml"))
+        } else if !conf.locations.ft_ping_dir.ends_with('/')
+            || !conf.locations.ping_dir.ends_with('/')
         {
-            eprintln!("Directory paths must end with '/'. Change conf.toml");
-            conf.valid = false;
+            Err(Error::new(
+                ErrorKind::InvalidData,
+                "Directory paths must end with '/'. Change conf.toml",
+            ))
         } else {
-            conf.valid = true;
-            conf.config = Some(conf_values);
+            Ok(conf)
         }
-
-        conf
     }
 }

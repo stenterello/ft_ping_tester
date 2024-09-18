@@ -7,13 +7,13 @@ use ratatui::{
 
 #[derive(Debug, Default, Clone)]
 pub struct CommandsWidget {
-    commands_string: String
+    commands_string: String,
 }
 
 impl CommandsWidget {
-    pub fn new(commands_string: String) -> Self {
+    pub fn new(commands_string: &str) -> Self {
         Self {
-            commands_string
+            commands_string: String::from(commands_string),
         }
     }
 }

@@ -1,12 +1,20 @@
 use serde_json::Value;
 use std::fs;
+use std::io::{Error, ErrorKind, Result};
 
-#[derive(Debug, Default)]
 pub struct TestConfigExtractor;
 
 impl TestConfigExtractor {
-    pub fn decode(file: String) -> Value {
-        let contents = fs::read_to_string(file).expect("Unable to read tests file");
-        serde_json::from_str(contents.as_str()).unwrap()
+    pub fn decode(file: &str) -> Result<Value> {
+        match fs::read_to_string(file) {
+            Ok(string) => match serde_json::from_str(&string) {
+                Ok(value) => Ok(value),
+                Err(_) => Err(Error::new(
+                    ErrorKind::InvalidData,
+                    "Unable to parse json file.",
+                )),
+            },
+            Err(e) => Err(e),
+        }
     }
 }

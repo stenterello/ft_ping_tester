@@ -21,10 +21,10 @@ pub struct RecompilingNotice {
 }
 
 impl RecompilingNotice {
-    pub fn new(path: String) -> Self {
+    pub fn new(path: &str) -> Self {
         RecompilingNotice {
             thread: Thread::new("".into(), "make".into()),
-            location: path,
+            location: String::from(path),
             vertical_scroll: usize::default(),
             widget_height: RefCell::new(usize::default()),
         }

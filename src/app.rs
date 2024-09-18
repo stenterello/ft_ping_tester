@@ -6,11 +6,8 @@ use ratatui::{
     crossterm::event::{self, Event, KeyEvent, KeyEventKind},
     Frame,
 };
-use std::{
-    io::{Error, ErrorKind, Result},
-    time::Duration,
-};
-use utils::config::config_extractor::{ConfigExtractor, ConfigValues};
+use std::{io::Result, time::Duration};
+use utils::config::config_extractor::{Config, ConfigExtractor};
 use utils::config::test_config_extractor::TestConfigExtractor;
 use widgets::error_handling::ErrorHandling;
 use widgets::output_tests_widget::OutputTestsWidget;
@@ -42,82 +39,65 @@ pub struct App {
 
 impl App {
     pub fn new() -> Result<Self> {
-        let config = ConfigExtractor::decode(CONF_FILE.into());
-        if !config.valid {
-            return Err(Error::new(
-                ErrorKind::InvalidInput,
-                "Invalid paths in config.toml",
-            ));
+        let config: Config = match ConfigExtractor::decode(CONF_FILE) {
+            Ok(config) => config,
+            Err(e) => return Err(e),
+        };
+        match TestConfigExtractor::decode(&config.locations.test_conf_path) {
+            Ok(tests) => Ok(App {
+                welcome_widget: WelcomeWidget::new(&config.locations.ft_ping_dir),
+                error_handling_widget: ErrorHandling::new(
+                    &config.locations,
+                    tests["error_handling"].clone(),
+                ),
+                output_tests_widget: OutputTestsWidget::new(
+                    &config.locations,
+                    tests["output_tests"].clone(),
+                ),
+                state: State::default(),
+                about_to_quit: false,
+            }),
+            Err(e) => Err(e),
         }
-        let config: ConfigValues = config.config.unwrap();
-        let tests = TestConfigExtractor::decode(config.locations.test_conf_path.clone());
-        Ok(App {
-            welcome_widget: WelcomeWidget::new(config.locations.ft_ping_dir.clone()),
-            error_handling_widget: ErrorHandling::new(
-                config.locations.clone(),
-                tests["error_handling"].clone(),
-            ),
-            output_tests_widget: OutputTestsWidget::new(
-                config.locations,
-                tests["output_tests"].clone(),
-            ),
-            state: State::default(),
-            about_to_quit: false,
-        })
     }
 
     pub fn run(&mut self, tui: &mut Tui) -> Result<()> {
-        let mut error: Option<Result<()>> = None;
+        let mut result: Result<()> = Ok(());
         loop {
-            tui.terminal.draw(|frame| match self.render(frame) {
-                Ok(_) => {}
-                Err(e) => error = Some(Err(e)),
-            })?;
-            match error {
-                Some(e) => {
-                    return e;
-                }
-                None => {}
+            tui.terminal.draw(|frame| result = self.render(frame))?;
+            if let Err(_) = result {
+                return result;
             }
             self.handle_events()?;
             if self.about_to_quit == true {
                 break;
             }
         }
-        Ok(())
+        result
     }
 
     fn handle_events(&mut self) -> Result<()> {
         if event::poll(Duration::from_secs(0))? {
-            match event::read()? {
-                Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+            if let Event::Key(key_event) = event::read()? {
+                if key_event.kind == KeyEventKind::Press {
                     self.handle_key_event(key_event)?;
                 }
-                _ => {}
             };
         }
         Ok(())
     }
 
     fn update_state(&mut self) -> () {
-        match self.state {
-            State::Welcome => {
-                if let Some(state) = self.welcome_widget.state() {
-                    self.state = state;
-                }
-            }
-            State::ErrorHandling => {
-                if let Some(state) = self.error_handling_widget.state() {
-                    self.state = state;
-                }
-            }
-            State::OutputTests => {
-                if let Some(state) = self.output_tests_widget.state() {
-                    self.state = state;
-                }
-            }
-            State::PacketTests | State::PerformanceTests => todo!(),
-            State::Invalid | State::Exit => {}
+        let captured_state: Option<State> = match self.state {
+            State::Welcome => self.welcome_widget.state(),
+            State::ErrorHandling => self.error_handling_widget.state(),
+            State::OutputTests => self.output_tests_widget.state(),
+            State::PacketTests | State::PerformanceTests => None,
+            State::Invalid | State::Exit => Some(State::Exit),
+        };
+
+        if let Some(state) = captured_state {
+            self.state = state;
         }
     }
 
@@ -141,13 +121,9 @@ impl App {
             State::OutputTests => self.output_tests_widget.draw(frame),
             State::PacketTests | State::PerformanceTests | State::Invalid => todo!(),
             State::Exit => {
-                self.exit();
+                self.about_to_quit = true;
                 Ok(())
             }
         }
-    }
-
-    fn exit(&mut self) {
-        self.about_to_quit = true;
     }
 }

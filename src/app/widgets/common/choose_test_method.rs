@@ -19,9 +19,7 @@ impl ChooseTestMethod {
             select_box: ListWidget::new(" Test Method ".to_string(), items)
                 .with_alignment(ListAlignment::Centered),
             selected: None,
-            commands_widget: CommandsWidget::new(
-                " ↑/↓: Move Up/Down | Enter: Select | Q: Back ".to_string(),
-            ),
+            commands_widget: CommandsWidget::new(" ↑/↓: Move Up/Down | Enter: Select | Q: Back "),
         }
     }
 

@@ -184,7 +184,7 @@ impl ThreadStringPullerWidget for ErrorHandling {
 }
 
 impl ErrorHandling {
-    pub fn new(locations: Locations, tests: Value) -> Self {
+    pub fn new(locations: &Locations, tests: Value) -> Self {
         ErrorHandling {
             choose_method_widget: ChooseTestMethod::new(vec![
                 "Interactive".to_string(),
@@ -196,7 +196,7 @@ impl ErrorHandling {
             ),
             ping_output_viewer: OutputViewer::new(&locations.ping_dir, &locations.ping_name),
             message_widget: MessageWidget::default(),
-            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test ".to_string()),
+            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test "),
             summary_widget: TestSummaryWidget::default(),
             processing_widget: ProcessingWidget::default(),
             running: false,

@@ -157,7 +157,7 @@ impl ThreadStringPullerWidget for OutputTestsWidget {
 }
 
 impl OutputTestsWidget {
-    pub fn new(locations: Locations, tests: Value) -> Self {
+    pub fn new(locations: &Locations, tests: Value) -> Self {
         OutputTestsWidget {
             ft_ping_output_viewer: OutputViewer::new(
                 &locations.ft_ping_dir,
@@ -165,7 +165,7 @@ impl OutputTestsWidget {
             ),
             ping_output_viewer: OutputViewer::new(&locations.ping_dir, &locations.ping_name),
             message_widget: MessageWidget::default(),
-            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test ".to_string()),
+            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test "),
             summary_widget: TestSummaryWidget::default(),
             processing_widget: ProcessingWidget::default(),
             running: false,

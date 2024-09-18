@@ -14,18 +14,15 @@ pub struct Tui {
 
 impl Tui {
     pub fn new() -> Result<Tui> {
-        let tui = Tui {
+        Ok(Tui {
             terminal: Terminal::new(CrosstermBackend::new(stdout()))?,
-        };
-
-        Ok(tui)
+        })
     }
 
     pub fn enter(&mut self) -> Result<()> {
         enable_raw_mode()?;
         stdout().execute(EnterAlternateScreen)?;
-        self.terminal.clear()?;
-        Ok(())
+        self.terminal.clear()
     }
 
     pub fn restore(&mut self) -> Result<()> {
