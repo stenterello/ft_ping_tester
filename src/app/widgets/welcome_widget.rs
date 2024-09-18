@@ -15,7 +15,7 @@ use ratatui::{
 };
 use recompiling_notice::RecompilingNotice;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 enum State {
     #[default]
     Initial,
@@ -29,7 +29,6 @@ pub struct WelcomeWidget {
     info_widget: InfoWidget,
     commands_widget: CommandsWidget,
     recompiling_notice: RecompilingNotice,
-    pub recompiling: bool,
     to_clear: bool,
     state: State,
     upper_state: Option<crate::app::State>,
@@ -64,6 +63,7 @@ impl TuiWidget for WelcomeWidget {
             State::Recompiling => match key_event.code {
                 KeyCode::Up => self.recompiling_notice.move_up(),
                 KeyCode::Down => self.recompiling_notice.move_down(),
+                KeyCode::Char('q') => self.state = State::Initial,
                 _ => {}
             },
         }
@@ -92,7 +92,7 @@ impl TuiWidget for WelcomeWidget {
         frame.render_widget(&self.info_widget, lower_right_area);
         frame.render_widget(&self.commands_widget, commands_area);
 
-        if self.recompiling {
+        if self.state == State::Recompiling {
             let center_h_area = Layout::horizontal([
                 Constraint::Percentage(15),
                 Constraint::Percentage(70),
@@ -139,7 +139,6 @@ impl WelcomeWidget {
                 ],
             ),
             recompiling_notice: RecompilingNotice::new(path),
-            recompiling: false,
             intro_widget: IntroWidget::default(),
             info_widget: InfoWidget::default(),
             commands_widget: CommandsWidget::new(" ↑/↓: Move Up/Down | Enter: Select | Q: Exit "),
