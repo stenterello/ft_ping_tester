@@ -1,5 +1,3 @@
-extern crate libc;
-
 use std::cell::RefCell;
 use std::io::{BufRead, BufReader, Read, Result};
 use std::process::{Child, Command, Stdio};
@@ -61,7 +59,13 @@ impl SubProcess {
 
         match child.wait() {
             Ok(r) => {
-                *stat = (Some(r.code().unwrap()), None);
+                *stat = (
+                    Some(match r.code() {
+                        Some(n) => n,
+                        None => 127,
+                    }),
+                    None,
+                );
             }
             Err(e) => {
                 *stat = (None, Some(e.to_string()));
