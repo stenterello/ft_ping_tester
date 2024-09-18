@@ -60,6 +60,7 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
                 self.output_viewer_mut(Ping)
                     .start_process(arguments_vec);
                 self.set_running(true);
+                self.message_widget().set_running(true);
                 self.increment_test_index();
             }
             None => {
@@ -88,18 +89,19 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
     }
 
     fn check_treads(&mut self) -> Result<()> {
+        if !self.output_viewer(FtPing).is_running()
+            && !self.output_viewer(Ping).is_running()
+        {
+            self.set_running(false);
+            self.message_widget().set_running(false);
+        }
+
         if let Err(e) = self.check_thread_exit_status(FtPing) {
             return Err(e);
         }
 
         if let Err(e) = self.check_thread_exit_status(Ping) {
             return Err(e);
-        }
-
-        if !self.output_viewer(FtPing).is_running()
-            && !self.output_viewer(Ping).is_running()
-        {
-            self.set_running(false);
         }
 
         Ok(())

@@ -132,12 +132,12 @@ impl ThreadStringPuller for OutputTestsWidget {
         }
     }
 
-    fn set_running(&mut self, v: bool) -> () {
-        self.running = v;
-    }
-
     fn running(&self) -> bool {
         self.running
+    }
+
+    fn set_running(&mut self, v: bool) -> () {
+        self.running = v;
     }
 
     fn to_run(&self) -> bool {
