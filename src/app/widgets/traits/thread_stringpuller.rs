@@ -121,9 +121,9 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
             self.output_viewer(Viewer::Ping).take_error_output(),
         );
 
-        let (mut ft_useful_error_text, qqq) =
+        let (mut ft_useful_error_text, _) =
             <Self as Comparer>::remove_path(&mut ft_ping_error_text);
-        let (ping_useful_error_text, www) = <Self as Comparer>::remove_path(&mut ping_error_text);
+        let (ping_useful_error_text, _) = <Self as Comparer>::remove_path(&mut ping_error_text);
 
         let _ = TextType::Formatted(self.compare_output(&mut ft_ping_text, &ping_text));
         let _ = TextType::Formatted(
