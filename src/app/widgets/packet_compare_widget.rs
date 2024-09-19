@@ -1,4 +1,8 @@
-use super::{common::test_summary_widget::TestSummaryWidget, traits::tui_widget::TuiWidget};
+use super::{
+    common::test_summary_widget::TestSummaryWidget,
+    traits::{thread_stringpuller::ViewerType, tui_widget::TuiWidget},
+};
+use packet_viewer::PacketViewer;
 use pnet::datalink::{interfaces, NetworkInterface};
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
@@ -6,6 +10,8 @@ use ratatui::{
 };
 use serde_json::Value;
 use std::io::Result;
+
+mod packet_viewer;
 
 #[derive(Debug, Default)]
 enum State {
@@ -23,12 +29,16 @@ pub struct PacketCompareWidget {
     summary_widget: TestSummaryWidget,
     to_clear: bool,
     interfaces: Vec<NetworkInterface>,
+    ft_ping_viewer: PacketViewer,
+    ping_viewer: PacketViewer,
 }
 
 impl PacketCompareWidget {
     pub fn new() -> Self {
         Self {
             interfaces: interfaces(),
+            ft_ping_viewer: PacketViewer::new(ViewerType::FtPing),
+            ping_viewer: PacketViewer::new(ViewerType::Ping),
             ..Default::default()
         }
     }
@@ -68,7 +78,7 @@ impl TuiWidget for PacketCompareWidget {
         }
     }
 
-    fn draw(&mut self, _frame: &mut Frame) -> Result<()> {
+    fn draw(&mut self, frame: &mut Frame) -> Result<()> {
         let mut file = OpenOptions::new()
             .write(true)
             .append(true)
@@ -85,7 +95,7 @@ impl TuiWidget for PacketCompareWidget {
             }
         }
 
-        Ok(())
+        // Ok(())
         // match self.state {
         //     State::Initial => Ok(()),
         //     // State::ChooseMethod => self.choose_method_widget.draw(frame),
@@ -103,6 +113,8 @@ impl TuiWidget for PacketCompareWidget {
         //         Ok(())
         //     }
         // }
+        frame.render_widget(&self.ft_ping_viewer, frame.size());
+        Ok(())
     }
 
     fn set_to_clear(&mut self, v: bool) -> () {
