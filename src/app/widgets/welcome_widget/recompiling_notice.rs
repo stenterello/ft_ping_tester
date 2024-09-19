@@ -10,7 +10,7 @@ use ratatui::{
 };
 use std::cell::RefCell;
 
-use crate::app::utils::thread::Thread;
+use crate::app::{utils::thread::Thread, widgets::traits::viewer::OutputType};
 
 #[derive(Debug)]
 pub struct RecompilingNotice {
@@ -41,7 +41,12 @@ impl RecompilingNotice {
     }
 
     pub fn move_down(&mut self) {
-        if self.thread.get_output().join("\n").lines().count()
+        if self
+            .thread
+            .get_output(OutputType::Stdout)
+            .join("\n")
+            .lines()
+            .count()
             > (self.widget_height.borrow().to_owned() + self.vertical_scroll - 5)
         {
             self.vertical_scroll += 1;
@@ -71,8 +76,13 @@ impl Widget for &RecompilingNotice {
             block = block.title(error_title);
         }
 
-        let mut text = self.thread.get_output().join("\n");
-        text.push_str(self.thread.get_error_output().join("\n").as_str());
+        let mut text = self.thread.get_output(OutputType::Stdout).join("\n");
+        text.push_str(
+            self.thread
+                .get_output(OutputType::Stderr)
+                .join("\n")
+                .as_str(),
+        );
         let mut h = self.widget_height.borrow_mut();
         *h = area.height as usize;
 

@@ -1,3 +1,5 @@
+use crate::app::widgets::traits::viewer::OutputType;
+
 use super::subprocess::SubProcess;
 use std::cell::RefCell;
 use std::io::Result;
@@ -48,36 +50,28 @@ impl Thread {
         self.handle = Some(thread.spawn(handle).unwrap());
     }
 
-    pub fn get_output(&self) -> Vec<String> {
-        match self.rx.try_recv() {
-            Ok(received) => self.output.borrow_mut().push(received),
+    pub fn get_output(&self, t: OutputType) -> Vec<String> {
+        let (receiver, output): (&Receiver<String>, &RefCell<Vec<String>>) = match t {
+            OutputType::Stdout => (&self.rx, &self.output),
+            OutputType::Stderr => (&self.error_rx, &self.error_output),
+        };
+        match receiver.try_recv() {
+            Ok(received) => output.borrow_mut().push(received),
             _ => {}
         };
-        self.output.borrow().clone()
+        output.borrow().clone()
     }
 
-    pub fn take_output(&self) -> Vec<String> {
-        match self.rx.try_recv() {
-            Ok(received) => self.output.borrow_mut().push(received),
+    pub fn take_output(&self, t: OutputType) -> Vec<String> {
+        let (receiver, output): (&Receiver<String>, &RefCell<Vec<String>>) = match t {
+            OutputType::Stdout => (&self.rx, &self.output),
+            OutputType::Stderr => (&self.error_rx, &self.error_output),
+        };
+        match receiver.try_recv() {
+            Ok(received) => output.borrow_mut().push(received),
             _ => {}
         };
-        self.output.take()
-    }
-
-    pub fn get_error_output(&self) -> Vec<String> {
-        match self.error_rx.try_recv() {
-            Ok(received) => self.error_output.borrow_mut().push(received),
-            _ => {}
-        };
-        self.error_output.borrow().clone()
-    }
-
-    pub fn take_error_output(&self) -> Vec<String> {
-        match self.rx.try_recv() {
-            Ok(received) => self.error_output.borrow_mut().push(received),
-            _ => {}
-        };
-        self.error_output.take()
+        output.take()
     }
 
     pub fn is_running(&self) -> bool {

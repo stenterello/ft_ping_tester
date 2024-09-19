@@ -5,15 +5,17 @@ use crate::app::widgets::common::output_viewer::OutputViewer;
 use crate::app::widgets::common::test_summary_widget::TestSummaryWidget;
 use crate::app::widgets::traits::comparer::Comparer;
 use crate::app::widgets::traits::thread_stringpuller::{
-    ThreadStringPuller, ThreadStringPullerWidget, Viewer,
+    ThreadStringPuller, ThreadStringPullerWidget,
 };
 use crate::app::widgets::traits::tui_widget::TuiWidget;
+use crate::app::widgets::traits::viewer::Viewer;
 
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::Frame;
 use serde_json::Value;
 
 use super::common::processing_widget::ProcessingWidget;
+use super::traits::thread_stringpuller::ViewerType;
 
 #[derive(Debug, Default)]
 enum State {
@@ -117,17 +119,17 @@ impl ThreadStringPuller for OutputTestsWidget {
         &mut self.processing_widget
     }
 
-    fn output_viewer_mut(&mut self, v: Viewer) -> &mut OutputViewer {
+    fn viewer_mut(&mut self, v: ViewerType) -> &mut impl Viewer {
         match v {
-            Viewer::FtPing => &mut self.ft_ping_output_viewer,
-            Viewer::Ping => &mut self.ping_output_viewer,
+            ViewerType::FtPing => &mut self.ft_ping_output_viewer,
+            ViewerType::Ping => &mut self.ping_output_viewer,
         }
     }
 
-    fn output_viewer(&self, v: Viewer) -> &OutputViewer {
+    fn viewer(&self, v: ViewerType) -> &impl Viewer {
         match v {
-            Viewer::FtPing => &self.ft_ping_output_viewer,
-            Viewer::Ping => &self.ping_output_viewer,
+            ViewerType::FtPing => &self.ft_ping_output_viewer,
+            ViewerType::Ping => &self.ping_output_viewer,
         }
     }
 
@@ -159,6 +161,13 @@ impl ThreadStringPuller for OutputTestsWidget {
 impl ThreadStringPullerWidget for OutputTestsWidget {
     fn commands_widget(&mut self) -> &mut CommandsWidget {
         &mut self.commands_widget
+    }
+
+    fn render_viewer(&mut self, frame: &mut Frame, t: ViewerType, area: ratatui::prelude::Rect) {
+        match t {
+            ViewerType::FtPing => frame.render_widget(&self.ft_ping_output_viewer, area),
+            ViewerType::Ping => frame.render_widget(&self.ping_output_viewer, area),
+        }
     }
 }
 

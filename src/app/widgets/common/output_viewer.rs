@@ -1,6 +1,7 @@
 use crate::app::utils::enums::TextType;
 use crate::app::utils::thread::Thread;
 use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
+use crate::app::widgets::traits::viewer::{OutputType, Viewer};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -25,6 +26,32 @@ impl ThreadLauncher for OutputViewer {
     }
 }
 
+impl Viewer for OutputViewer {
+    fn thread_mut(&mut self) -> &mut Thread {
+        &mut self.thread
+    }
+
+    fn thread(&self) -> &Thread {
+        &self.thread
+    }
+
+    fn take_output(&mut self, t: OutputType) -> Vec<String> {
+        self.thread.take_output(t)
+    }
+
+    fn get_output(&self, t: OutputType) -> Vec<String> {
+        self.thread.get_output(t)
+    }
+
+    fn set_text_to_display(&mut self, display: TextType) -> () {
+        self.text_to_display = display;
+    }
+
+    fn set_error_to_display(&mut self, display: TextType) -> () {
+        self.error_to_display = display;
+    }
+}
+
 impl OutputViewer {
     pub fn new(path: &str, name: &str) -> Self {
         OutputViewer {
@@ -40,30 +67,6 @@ impl OutputViewer {
 
     pub fn get_exit_status(&self) -> (Option<i32>, Option<String>) {
         self.thread.get_exit()
-    }
-
-    pub fn get_output(&self) -> Vec<String> {
-        self.thread.get_output()
-    }
-
-    pub fn get_error_output(&self) -> Vec<String> {
-        self.thread.get_error_output()
-    }
-
-    pub fn take_output(&self) -> Vec<String> {
-        self.thread.take_output()
-    }
-
-    pub fn take_error_output(&self) -> Vec<String> {
-        self.thread.take_error_output()
-    }
-
-    pub fn set_text_to_display(&mut self, display: TextType) -> () {
-        self.text_to_display = display;
-    }
-
-    pub fn set_error_to_display(&mut self, display: TextType) -> () {
-        self.error_to_display = display;
     }
 
     pub fn clear_buffers(&mut self) {

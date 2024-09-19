@@ -11,6 +11,7 @@ use utils::config::config_extractor::{Config, ConfigExtractor};
 use utils::config::test_config_extractor::TestConfigExtractor;
 use widgets::error_handling::ErrorHandling;
 use widgets::output_tests_widget::OutputTestsWidget;
+use widgets::packet_compare_widget::PacketCompareWidget;
 use widgets::traits::tui_widget::TuiWidget;
 use widgets::welcome_widget::WelcomeWidget;
 
@@ -32,6 +33,7 @@ pub struct App {
     welcome_widget: WelcomeWidget,
     error_handling_widget: ErrorHandling,
     output_tests_widget: OutputTestsWidget,
+    packet_compare_widget: PacketCompareWidget,
     state: State,
     about_to_quit: bool,
 }
@@ -53,6 +55,7 @@ impl App {
                     &config.locations,
                     tests["output_tests"].clone(),
                 ),
+                packet_compare_widget: PacketCompareWidget::new(),
                 state: State::default(),
                 about_to_quit: false,
             }),
@@ -91,7 +94,8 @@ impl App {
             State::Welcome => self.welcome_widget.state(),
             State::ErrorHandling => self.error_handling_widget.state(),
             State::OutputTests => self.output_tests_widget.state(),
-            State::PacketTests | State::PerformanceTests => None,
+            State::PacketTests => self.packet_compare_widget.state(),
+            State::PerformanceTests => None,
             State::Exit => Some(State::Exit),
         };
 
@@ -105,7 +109,8 @@ impl App {
             State::Welcome => self.welcome_widget.process_input(key_event),
             State::ErrorHandling => self.error_handling_widget.process_input(key_event),
             State::OutputTests => self.output_tests_widget.process_input(key_event),
-            State::PacketTests | State::PerformanceTests => todo!(),
+            State::PacketTests => self.packet_compare_widget.process_input(key_event),
+            State::PerformanceTests => todo!(),
             State::Exit => {}
         };
 
@@ -118,7 +123,8 @@ impl App {
             State::Welcome => self.welcome_widget.draw(frame),
             State::ErrorHandling => self.error_handling_widget.draw(frame),
             State::OutputTests => self.output_tests_widget.draw(frame),
-            State::PacketTests | State::PerformanceTests => todo!(),
+            State::PacketTests => self.packet_compare_widget.draw(frame),
+            State::PerformanceTests => todo!(),
             State::Exit => {
                 self.about_to_quit = true;
                 Ok(())
