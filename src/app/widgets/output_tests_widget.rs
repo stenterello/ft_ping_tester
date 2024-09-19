@@ -31,7 +31,6 @@ pub struct OutputTestsWidget {
     summary_widget: TestSummaryWidget,
     processing_widget: ProcessingWidget,
     running: bool,
-    finished: bool,
     to_run: bool,
     tests: Value,
     tests_idx: usize,
@@ -153,7 +152,7 @@ impl ThreadStringPuller for OutputTestsWidget {
     }
 
     fn set_finished(&mut self) -> () {
-        self.finished = true;
+        self.state = State::Summary;
     }
 }
 
@@ -176,7 +175,6 @@ impl OutputTestsWidget {
             summary_widget: TestSummaryWidget::default(),
             processing_widget: ProcessingWidget::default(),
             running: false,
-            finished: false,
             to_run: true,
             tests,
             tests_idx: usize::default(),

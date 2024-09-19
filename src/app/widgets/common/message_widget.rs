@@ -2,7 +2,7 @@ use crate::app::widgets::traits::thread_stringpuller::ExitResult;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Rect},
-    style::{Color, Style, Styled, Stylize},
+    style::{Color, Style, Stylize},
     text::Span,
     widgets::{
         block::{Block, BorderType, Title},

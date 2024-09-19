@@ -25,7 +25,6 @@ pub enum State {
     PacketTests,
     PerformanceTests,
     Exit,
-    Invalid,
 }
 
 #[derive(Debug)]
@@ -93,7 +92,7 @@ impl App {
             State::ErrorHandling => self.error_handling_widget.state(),
             State::OutputTests => self.output_tests_widget.state(),
             State::PacketTests | State::PerformanceTests => None,
-            State::Invalid | State::Exit => Some(State::Exit),
+            State::Exit => Some(State::Exit),
         };
 
         if let Some(state) = captured_state {
@@ -107,7 +106,7 @@ impl App {
             State::ErrorHandling => self.error_handling_widget.process_input(key_event),
             State::OutputTests => self.output_tests_widget.process_input(key_event),
             State::PacketTests | State::PerformanceTests => todo!(),
-            State::Invalid | State::Exit => {}
+            State::Exit => {}
         };
 
         self.update_state();
@@ -119,7 +118,7 @@ impl App {
             State::Welcome => self.welcome_widget.draw(frame),
             State::ErrorHandling => self.error_handling_widget.draw(frame),
             State::OutputTests => self.output_tests_widget.draw(frame),
-            State::PacketTests | State::PerformanceTests | State::Invalid => todo!(),
+            State::PacketTests | State::PerformanceTests => todo!(),
             State::Exit => {
                 self.about_to_quit = true;
                 Ok(())
