@@ -175,51 +175,5 @@ impl Widget for &PacketViewer {
         self.draw_paragraph(IdLabel, cell_block.clone(), buf);
         self.draw_paragraph(SequenceLabel, cell_block.clone(), buf);
         self.draw_paragraph(PayloadLabel, cell_block.clone(), buf);
-
-
-
-
-
-
-
-
-        /*let area1 = Rect {
-            x: area.x,
-            y: area.y,
-            width: area.width,
-            height: area.height / 2,
-        };
-        let area2 = Rect {
-            x: area.x,
-            y: area.height / 2,
-            width: area.width,
-            height: area.height / 2,
-        };
-        let block = Block::bordered()
-            .title(title.clone().alignment(Alignment::Center))
-            .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded);
-
-        let block2 = Block::bordered()
-            .title(title.alignment(Alignment::Center))
-            .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded);
-
-        let rows = vec![
-            Row::new(vec!["type", "code", "ICMP checksum"]),
-            Row::new(vec!["ID", "Sequence"]),
-            Row::new(vec!["Payload"]),
-        ];
-        let widths = vec![
-            Constraint::Percentage(25),
-            Constraint::Percentage(50),
-            Constraint::Percentage(25),
-        ];
-        Table::new(rows.clone(), widths.clone())
-            .block(block)
-            .render(area1, buf);
-        Table::new(rows.clone(), widths.clone())
-            .block(block2)
-            .render(area2, buf);*/
     }
 }

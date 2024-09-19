@@ -1,9 +1,10 @@
+use std::error::Error;
 use super::{
     common::test_summary_widget::TestSummaryWidget,
     traits::{thread_stringpuller::ViewerType, tui_widget::TuiWidget},
 };
 use packet_viewer::PacketViewer;
-use pnet::datalink::{interfaces, NetworkInterface};
+use pnet::datalink::{interfaces, Channel, NetworkInterface};
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
     layout::Layout,
@@ -51,6 +52,8 @@ impl PacketCompareWidget {
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
+use pnet::datalink;
+use pnet::packet::ethernet::EthernetPacket;
 use ratatui::prelude::Constraint;
 
 impl TuiWidget for PacketCompareWidget {
@@ -85,14 +88,35 @@ impl TuiWidget for PacketCompareWidget {
             .write(true)
             .append(true)
             .open("ciao.txt")?;
+        for i in &self.interfaces {
+            match datalink::channel(&i, Default::default()) {
+                    Ok(Channel::Ethernet(_, mut rx)) => {
+                        match rx.next() {
+                            Ok(packet) => {
+                                if let Some(ethernet_packet) = EthernetPacket::new(packet) {
+                                    if let Err(e) = writeln!(file, "{} => {}: {}",
+                                                             ethernet_packet.get_destination(),
+                                                             ethernet_packet.get_source(),
+                                                             ethernet_packet.get_ethertype()) {
+                                        eprintln!("Couldn't write to file: {}", e);
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                if let Err(e) = writeln!(file, "{}", e.to_string()) {
 
-        if let Err(e) = writeln!(file, "{}", self.interfaces.len()) {
-            eprintln!("Couldn't write to file: {}", e);
-        }
+                                    eprintln!("Couldn't write to file: {}", e);
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        if let Err(e) = writeln!(file, "{}", e.to_string()) {
 
-        for iface in &self.interfaces {
-            if let Err(e) = writeln!(file, "{}", iface.name) {
-                eprintln!("Couldn't write to file: {}", e);
+                            eprintln!("Couldn't write to file: {}", e);
+                        }
+                    }
+                    _ => eprintln!("Other")
             }
         }
 
