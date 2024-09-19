@@ -182,13 +182,11 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller {
             }
         }
 
-        let [upper_area, lower_area] =
-            Layout::vertical([Constraint::Percentage(70), Constraint::Percentage(30)])
-                .areas(frame.size());
+        let (commands_area, area) = Self::commands_area(frame);
 
-        let [status_area, commands_area] =
-            Layout::vertical([Constraint::Percentage(90), Constraint::Percentage(10)])
-                .areas(lower_area);
+        let [upper_area, status_area] =
+            Layout::vertical([Constraint::Percentage(70), Constraint::Percentage(30)])
+                .areas(area);
 
         let [upper_left_area, upper_right_area] =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])

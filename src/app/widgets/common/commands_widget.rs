@@ -4,6 +4,9 @@ use ratatui::{
     style::Stylize,
     widgets::{Paragraph, Widget},
 };
+use ratatui::prelude::Color;
+use ratatui::style::Style;
+use ratatui::widgets::{Block, Padding};
 
 #[derive(Debug, Default, Clone)]
 pub struct CommandsWidget {

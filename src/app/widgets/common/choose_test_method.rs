@@ -39,12 +39,13 @@ impl TuiWidget for ChooseTestMethod {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> Result<()> {
+        let (commands_area, area) = Self::commands_area(frame);
         let center_h_area = Layout::horizontal([
             Constraint::Percentage(15),
             Constraint::Percentage(70),
             Constraint::Percentage(15),
         ])
-        .areas::<3>(frame.size())[1];
+        .areas::<3>(area)[1];
         let center_hv_area = Layout::vertical([
             Constraint::Percentage(30),
             Constraint::Percentage(40),
@@ -55,8 +56,7 @@ impl TuiWidget for ChooseTestMethod {
         frame.render_stateful_widget(&self.select_box, center_hv_area, &mut t);
         frame.render_widget(
             &self.commands_widget,
-            Layout::vertical([Constraint::Percentage(97), Constraint::Percentage(3)])
-                .areas::<2>(frame.size())[1],
+            commands_area,
         );
         Ok(())
     }

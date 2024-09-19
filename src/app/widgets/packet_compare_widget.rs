@@ -6,6 +6,7 @@ use packet_viewer::PacketViewer;
 use pnet::datalink::{interfaces, NetworkInterface};
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
+    layout::Layout,
     Frame,
 };
 use serde_json::Value;
@@ -50,6 +51,7 @@ impl PacketCompareWidget {
 
 use std::fs::OpenOptions;
 use std::io::prelude::*;
+use ratatui::prelude::Constraint;
 
 impl TuiWidget for PacketCompareWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
@@ -82,8 +84,7 @@ impl TuiWidget for PacketCompareWidget {
         let mut file = OpenOptions::new()
             .write(true)
             .append(true)
-            .open("ciao.txt")
-            .unwrap();
+            .open("ciao.txt")?;
 
         if let Err(e) = writeln!(file, "{}", self.interfaces.len()) {
             eprintln!("Couldn't write to file: {}", e);
@@ -95,25 +96,10 @@ impl TuiWidget for PacketCompareWidget {
             }
         }
 
-        // Ok(())
-        // match self.state {
-        //     State::Initial => Ok(()),
-        //     // State::ChooseMethod => self.choose_method_widget.draw(frame),
-        //     // State::Interactive => self.draw_interactive_mode(frame),
-        //     // State::Batch => {
-        //     //     let ret = self.batch_mode();
-        //     //     frame.render_widget(&self.processing_widget, frame.size());
-        //     //     if self.tests_idx == self.tests.as_array().unwrap().len() - 1 {
-        //     //         self.state = State::Summary;
-        //     //     }
-        //     //     ret
-        //     // }
-        //     State::Summary => {
-        //         frame.render_widget(&self.summary_widget, frame.size());
-        //         Ok(())
-        //     }
-        // }
-        frame.render_widget(&self.ft_ping_viewer, frame.size());
+        let [left_area, right_area] = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(frame.size());
+
+        frame.render_widget(&self.ft_ping_viewer, left_area);
+        frame.render_widget(&self.ping_viewer, right_area);
         Ok(())
     }
 

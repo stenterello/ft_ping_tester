@@ -13,6 +13,7 @@ use ratatui::{
     widgets::Clear,
     Frame,
 };
+use ratatui::layout::Rect;
 use recompiling_notice::RecompilingNotice;
 
 #[derive(Debug, Default, PartialEq)]
@@ -75,12 +76,12 @@ impl TuiWidget for WelcomeWidget {
             self.set_to_clear(false);
             return Ok(());
         }
-        let [upper_area, lower_area, commands_area] = Layout::vertical([
+        let (commands_area, area) = Self::commands_area(frame);
+        let [upper_area, lower_area] = Layout::vertical([
             Constraint::Percentage(75),
             Constraint::Percentage(35),
-            Constraint::Percentage(3),
         ])
-        .areas(frame.size());
+        .areas(area);
         frame.render_widget(&self.intro_widget, upper_area);
 
         let [lower_left_area, lower_right_area] =
