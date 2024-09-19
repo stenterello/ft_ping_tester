@@ -1,14 +1,14 @@
+use crate::app::widgets::traits::thread_stringpuller::ExitResult;
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Rect},
-    style::{Color, Style, Stylize},
-    text::{Line, Span},
+    layout::{Alignment, Constraint, Rect},
+    style::{Color, Style, Styled, Stylize},
+    text::Span,
     widgets::{
         block::{Block, BorderType, Title},
-        Paragraph, Widget, Wrap,
+        Row, Table, Widget,
     },
 };
-use crate::app::widgets::traits::thread_stringpuller::ExitResult;
 
 #[derive(Debug, Default)]
 pub struct MessageWidget {
@@ -31,7 +31,7 @@ impl MessageWidget {
     pub fn arguments(&self) -> &str {
         &self.arguments
     }
-    
+
     pub fn errors(&self) -> bool {
         self.has_errors
     }
@@ -50,14 +50,12 @@ impl MessageWidget {
 
     pub fn set_codes(&mut self, ft_exit: ExitResult, ping_exit: ExitResult) -> () {
         match ft_exit {
-            ExitResult::Correct(code) => self.codes.0 = code,
-            ExitResult::Error(code, _) => self.codes.0 = code,
-            ExitResult::None => self.codes.0 = 127
+            ExitResult::Correct(code) | ExitResult::Error(code, _) => self.codes.0 = code,
+            ExitResult::None => self.codes.0 = 127,
         };
         match ping_exit {
-            ExitResult::Correct(code) => self.codes.1 = code,
-            ExitResult::Error(code, _) => self.codes.1 = code,
-            ExitResult::None => self.codes.0 = 127
+            ExitResult::Correct(code) | ExitResult::Error(code, _) => self.codes.1 = code,
+            ExitResult::None => self.codes.0 = 127,
         };
 
         if self.codes.0 != self.codes.1 {
@@ -74,43 +72,50 @@ impl Widget for &MessageWidget {
             .style(Style::default().fg(Color::Yellow))
             .border_type(BorderType::Rounded);
 
-        let message: Vec<Line> = {
-            let mut ret: Vec<Line> = Vec::default();
-            let mut tmp = Line::from(format!(
-                "{} {{ping}} ",
-                if self.running_test {
-                    "Running"
-                } else {
-                    "Last run"
-                }
-            ));
-            tmp.push_span(Span::from(self.arguments.as_str()));
-            tmp.push_span(Span::from("."));
-
-            ret.push(tmp);
-            ret.push(Line::default());
-
-            if !self.running_test {
-                ret.push(Line::from(Span::from(format!(
-                    "Test Result: {}",
-                    if self.has_errors {
-                        "🔴 ERROR!"
+        Table::new(
+            [
+                Row::new(vec![
+                    "ft_ping".to_string(),
+                    self.codes.0.to_string(),
+                    if self.errors() {
+                        "🔴".to_string()
                     } else {
-                        "🟢 CORRECT!"
-                    }
-                ))));
-                ret.push(Line::from(Span::from(format!("Exit codes: {{ ft_ping: {}, ping: {}}}", self.codes.0, self.codes.1))));
-                if self.codes.0 == 127 {
-                    ret.push(Line::from(Span::from("Maybe segfault on ft_ping")));
-                }
-            }
-            ret
-        };
-
-        Paragraph::new(message)
-            .block(block)
-            .wrap(Wrap { trim: true })
-            .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
-            .render(area, buf);
+                        "🟢".to_string()
+                    },
+                ])
+                .style(Style::default().white()),
+                Row::new(vec!["ping".to_string(), self.codes.1.to_string()])
+                    .style(Style::default().white()),
+            ],
+            [
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+            ],
+        )
+        .white()
+        .block(block)
+        .style(Style::default().white())
+        .header(
+            Row::new(vec![
+                "Exec".to_string(),
+                "Exit code".to_string(),
+                "Result".to_string(),
+            ])
+            .style(Style::default().white().bold()),
+        )
+        .footer(if self.codes.0 != 127 {
+            Row::new(vec![
+                "Arguments: ".to_string(),
+                self.arguments().to_string(),
+            ])
+        } else {
+            Row::new(vec![
+                Span::from("Arguments: ".to_string()),
+                Span::from(self.arguments().to_string()),
+                Span::from("Segfault on ft_ping".to_string()).bold().red(),
+            ])
+        })
+        .render(area, buf);
     }
 }
