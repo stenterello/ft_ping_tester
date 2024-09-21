@@ -1,4 +1,3 @@
-use std::error::Error;
 use super::{
     common::test_summary_widget::TestSummaryWidget,
     traits::{thread_stringpuller::ViewerType, tui_widget::TuiWidget},
@@ -11,14 +10,17 @@ use ratatui::{
     Frame,
 };
 use serde_json::Value;
+use std::error::Error;
 use std::io::Result;
+use sudo::RunningAs;
 
 mod packet_viewer;
 
 #[derive(Debug, Default)]
 enum State {
-    #[default]
     Initial,
+    #[default]
+    PermissionDenied,
     Summary,
 }
 
@@ -41,6 +43,11 @@ impl PacketCompareWidget {
             interfaces: interfaces(),
             ft_ping_viewer: PacketViewer::new(ViewerType::FtPing),
             ping_viewer: PacketViewer::new(ViewerType::Ping),
+            state: if let RunningAs::Root = sudo::check() {
+                State::Initial
+            } else {
+                State::default()
+            },
             ..Default::default()
         }
     }
@@ -50,11 +57,11 @@ impl PacketCompareWidget {
     }
 }
 
-use std::fs::OpenOptions;
-use std::io::prelude::*;
 use pnet::datalink;
 use pnet::packet::ethernet::EthernetPacket;
 use ratatui::prelude::Constraint;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
 
 impl TuiWidget for PacketCompareWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
@@ -76,6 +83,7 @@ impl TuiWidget for PacketCompareWidget {
                 //     _ => {}
                 // },
                 // State::Batch => {}
+                State::PermissionDenied => {}
                 State::Summary => {
                     self.summary_widget.process_input(key_event);
                 }
@@ -90,37 +98,38 @@ impl TuiWidget for PacketCompareWidget {
             .open("ciao.txt")?;
         for i in &self.interfaces {
             match datalink::channel(&i, Default::default()) {
-                    Ok(Channel::Ethernet(_, mut rx)) => {
-                        match rx.next() {
-                            Ok(packet) => {
-                                if let Some(ethernet_packet) = EthernetPacket::new(packet) {
-                                    if let Err(e) = writeln!(file, "{} => {}: {}",
-                                                             ethernet_packet.get_destination(),
-                                                             ethernet_packet.get_source(),
-                                                             ethernet_packet.get_ethertype()) {
-                                        eprintln!("Couldn't write to file: {}", e);
-                                    }
-                                }
-                            }
-                            Err(e) => {
-                                if let Err(e) = writeln!(file, "{}", e.to_string()) {
-
-                                    eprintln!("Couldn't write to file: {}", e);
-                                }
+                Ok(Channel::Ethernet(_, mut rx)) => match rx.next() {
+                    Ok(packet) => {
+                        if let Some(ethernet_packet) = EthernetPacket::new(packet) {
+                            if let Err(e) = writeln!(
+                                file,
+                                "{} => {}: {}",
+                                ethernet_packet.get_destination(),
+                                ethernet_packet.get_source(),
+                                ethernet_packet.get_ethertype()
+                            ) {
+                                eprintln!("Couldn't write to file: {}", e);
                             }
                         }
                     }
                     Err(e) => {
                         if let Err(e) = writeln!(file, "{}", e.to_string()) {
-
                             eprintln!("Couldn't write to file: {}", e);
                         }
                     }
-                    _ => eprintln!("Other")
+                },
+                Err(e) => {
+                    if let Err(e) = writeln!(file, "{}", e.to_string()) {
+                        eprintln!("Couldn't write to file: {}", e);
+                    }
+                }
+                _ => eprintln!("Other"),
             }
         }
 
-        let [left_area, right_area] = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(frame.size());
+        let [left_area, right_area] =
+            Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .areas(frame.size());
 
         frame.render_widget(&self.ft_ping_viewer, left_area);
         frame.render_widget(&self.ping_viewer, right_area);
