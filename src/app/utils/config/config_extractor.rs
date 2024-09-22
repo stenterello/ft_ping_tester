@@ -40,13 +40,13 @@ impl ConfigExtractor {
             || !Path::new(conf.locations.ping_dir.as_str()).exists()
             || !Path::new(conf.locations.test_conf_path.as_str()).exists()
         {
-            Err(Error::new(ErrorKind::NotFound, "Wrong paths in conf.toml"))
+            Err(Error::new(ErrorKind::NotFound, "Wrong paths in config.toml"))
         } else if !conf.locations.ft_ping_dir.ends_with('/')
             || !conf.locations.ping_dir.ends_with('/')
         {
             Err(Error::new(
                 ErrorKind::InvalidData,
-                "Directory paths must end with '/'. Change conf.toml",
+                "Directory paths must end with '/'. Change config.toml",
             ))
         } else {
             Ok(conf)
