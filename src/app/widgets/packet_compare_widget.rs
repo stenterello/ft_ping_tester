@@ -3,7 +3,7 @@ use super::{
     traits::{thread_stringpuller::ViewerType, tui_widget::TuiWidget},
 };
 use packet_viewer::PacketViewer;
-// use pnet::datalink::{interfaces, Channel, NetworkInterface};
+use input_dialog::InputDialog;
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
     layout::Layout,
@@ -15,6 +15,7 @@ use std::io::Result;
 use sudo::RunningAs;
 
 mod packet_viewer;
+mod input_dialog;
 
 #[derive(Debug, Default)]
 enum State {
@@ -32,7 +33,7 @@ pub struct PacketCompareWidget {
     tests_idx: usize,
     summary_widget: TestSummaryWidget,
     to_clear: bool,
-    // interfaces: Vec<NetworkInterface>,
+    password_dialog: InputDialog,
     ft_ping_viewer: PacketViewer,
     ping_viewer: PacketViewer,
 }
@@ -83,7 +84,9 @@ impl TuiWidget for PacketCompareWidget {
                 //     _ => {}
                 // },
                 // State::Batch => {}
-                State::PermissionCheck => {}
+                State::PermissionCheck => {
+
+                }
                 State::Summary => {
                     self.summary_widget.process_input(key_event);
                 }
@@ -127,12 +130,22 @@ impl TuiWidget for PacketCompareWidget {
         //     }
         // }
 
-        let [left_area, right_area] =
-            Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+        match &self.state {
+            State::Initial => {
+                let [left_area, right_area] =
+                Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .areas(frame.size());
 
-        frame.render_widget(&self.ft_ping_viewer, left_area);
-        frame.render_widget(&self.ping_viewer, right_area);
+                frame.render_widget(&self.ft_ping_viewer, left_area);
+                frame.render_widget(&self.ping_viewer, right_area);
+            },
+            State::PermissionCheck => {
+                self.password_dialog.draw(frame)?;
+            }
+            _ => {}
+        }
+
+
         Ok(())
     }
 
