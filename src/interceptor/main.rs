@@ -35,7 +35,7 @@ fn main() -> () {
                         if ipv4_packet.get_next_level_protocol() == pnet_packet::ip::IpNextHeaderProtocols::Icmp {
                             if let Some(icmp_packet) = icmp::IcmpPacket::new(ipv4_packet.payload()) {
                                 println!("Packet found:");
-                                println!("ICMP Type: {}", icmp_packet.get_icmp_type().0);
+                                println!("{:?}", icmp_packet);
                             } else {
                                 println!("Cannot create ICMP packet");
                             }
