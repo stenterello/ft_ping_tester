@@ -62,6 +62,7 @@ impl PacketCompareWidget {
 // use pnet::packet::ethernet::EthernetPacket;
 use ratatui::prelude::Constraint;
 use std::fs::OpenOptions;
+use std::hash::Hash;
 use std::io::prelude::*;
 
 impl TuiWidget for PacketCompareWidget {
@@ -73,17 +74,7 @@ impl TuiWidget for PacketCompareWidget {
             self.summary_widget.clear_results();
         } else {
             match self.state {
-                State::Initial => {} // State::Interactive => match key_event.code {
-                //     KeyCode::Char(' ') => {
-                //         if !self.running && !self.to_run {
-                //             self.to_run = true;
-                //             self.ft_ping_output_viewer.clear_buffers();
-                //             self.ping_output_viewer.clear_buffers();
-                //         }
-                //     }
-                //     _ => {}
-                // },
-                // State::Batch => {}
+                State::Initial => {}
                 State::PermissionCheck => {
 
                 }
@@ -95,56 +86,16 @@ impl TuiWidget for PacketCompareWidget {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> Result<()> {
-        // let mut file = OpenOptions::new()
-        //     .write(true)
-        //     .append(true)
-        //     .open("ciao.txt")?;
-        // for i in &self.interfaces {
-        //     match datalink::channel(&i, Default::default()) {
-        //         Ok(Channel::Ethernet(_, mut rx)) => match rx.next() {
-        //             Ok(packet) => {
-        //                 if let Some(ethernet_packet) = EthernetPacket::new(packet) {
-        //                     if let Err(e) = writeln!(
-        //                         file,
-        //                         "{} => {}: {}",
-        //                         ethernet_packet.get_destination(),
-        //                         ethernet_packet.get_source(),
-        //                         ethernet_packet.get_ethertype()
-        //                     ) {
-        //                         eprintln!("Couldn't write to file: {}", e);
-        //                     }
-        //                 }
-        //             }
-        //             Err(e) => {
-        //                 if let Err(e) = writeln!(file, "{}", e.to_string()) {
-        //                     eprintln!("Couldn't write to file: {}", e);
-        //                 }
-        //             }
-        //         },
-        //         Err(e) => {
-        //             if let Err(e) = writeln!(file, "{}", e.to_string()) {
-        //                 eprintln!("Couldn't write to file: {}", e);
-        //             }
-        //         }
-        //         _ => eprintln!("Other"),
-        //     }
-        // }
-
-        match &self.state {
-            State::Initial => {
-                let [left_area, right_area] =
-                Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+        let [left_area, right_area] =
+            Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .areas(frame.size());
 
-                frame.render_widget(&self.ft_ping_viewer, left_area);
-                frame.render_widget(&self.ping_viewer, right_area);
-            },
-            State::PermissionCheck => {
-                self.password_dialog.draw(frame)?;
-            }
-            _ => {}
-        }
+        frame.render_widget(&self.ft_ping_viewer, left_area);
+        frame.render_widget(&self.ping_viewer, right_area);
 
+        if let State::PermissionCheck = &self.state {
+            self.password_dialog.draw(frame)?;
+        }
 
         Ok(())
     }

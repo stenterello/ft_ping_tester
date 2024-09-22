@@ -1,8 +1,8 @@
 use ratatui::buffer::Buffer;
 use ratatui::crossterm::event::KeyEvent;
 use ratatui::Frame;
-use ratatui::layout::Rect;
-use ratatui::widgets::{Block, Borders, Paragraph, Widget};
+use ratatui::layout::{Constraint, Layout, Rect};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph, Widget};
 use tui_input::Input;
 use crate::app::State;
 use crate::app::widgets::traits::tui_widget::TuiWidget;
@@ -32,9 +32,12 @@ impl TuiWidget for InputDialog {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
+        let mut center_dialog = Layout::horizontal([Constraint::Percentage(30), Constraint::Percentage(40), Constraint::Percentage(30)]).areas::<3>(frame.size())[1];
+        center_dialog = Layout::vertical([Constraint::Percentage(40), Constraint::Percentage(20), Constraint::Percentage(40)]).areas::<3>(center_dialog)[1];
+        frame.render_widget(Clear, center_dialog);
         let input = Paragraph::new(self.input_line.value())
             .block(Block::default().borders(Borders::ALL).title("Input"));
-        frame.render_widget(input, frame.size());
+        frame.render_widget(input, center_dialog);
         Ok(())
     }
 
