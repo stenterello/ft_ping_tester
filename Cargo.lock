@@ -117,7 +117,6 @@ name = "ft_ping_tester"
 version = "0.1.0"
 dependencies = [
  "itertools",
- "libc",
  "pnet",
  "ratatui",
  "serde",

@@ -12,12 +12,14 @@ The tester is divided into four parts, each one focusing on a particular aspect:
 ## Usage
 
 To use this tester (which is still WIP) you have to run `get_inetutils.sh` in the project root and set your ping clone project in config.toml. If something goes wrong, `ft_ping_tester` will panic, warning about some files not found.
+To start the packets compliance tester, sudo privilege is needed - because of this, the crate is made of two executables, `ft_ping_tester` and `interceptor`: the latter is to perform packets interception and must be runned as sudo (all of this is made by `ft_ping_tester` itself).
 
 ```
 git clone https://github.com/stenterello/ft_ping_tester.git
 cd ft_ping_tester
 bash get_inetutils.sh
-cargo build
+cargo build --bin ft_ping_tester --features="ft_ping_tester_deps"
+cargo build --bin interceptor --features="interceptor_deps"
 cargo run
 ```
 

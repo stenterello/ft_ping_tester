@@ -3,7 +3,7 @@ use super::{
     traits::{thread_stringpuller::ViewerType, tui_widget::TuiWidget},
 };
 use packet_viewer::PacketViewer;
-use pnet::datalink::{interfaces, Channel, NetworkInterface};
+// use pnet::datalink::{interfaces, Channel, NetworkInterface};
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
     layout::Layout,
@@ -32,7 +32,7 @@ pub struct PacketCompareWidget {
     tests_idx: usize,
     summary_widget: TestSummaryWidget,
     to_clear: bool,
-    interfaces: Vec<NetworkInterface>,
+    // interfaces: Vec<NetworkInterface>,
     ft_ping_viewer: PacketViewer,
     ping_viewer: PacketViewer,
 }
@@ -40,7 +40,7 @@ pub struct PacketCompareWidget {
 impl PacketCompareWidget {
     pub fn new() -> Self {
         Self {
-            interfaces: interfaces(),
+            // interfaces: interfaces(),
             ft_ping_viewer: PacketViewer::new(ViewerType::FtPing),
             ping_viewer: PacketViewer::new(ViewerType::Ping),
             state: if let RunningAs::Root = sudo::check() {
@@ -57,8 +57,8 @@ impl PacketCompareWidget {
     }
 }
 
-use pnet::datalink;
-use pnet::packet::ethernet::EthernetPacket;
+// use pnet::datalink;
+// use pnet::packet::ethernet::EthernetPacket;
 use ratatui::prelude::Constraint;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
@@ -92,40 +92,40 @@ impl TuiWidget for PacketCompareWidget {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> Result<()> {
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open("ciao.txt")?;
-        for i in &self.interfaces {
-            match datalink::channel(&i, Default::default()) {
-                Ok(Channel::Ethernet(_, mut rx)) => match rx.next() {
-                    Ok(packet) => {
-                        if let Some(ethernet_packet) = EthernetPacket::new(packet) {
-                            if let Err(e) = writeln!(
-                                file,
-                                "{} => {}: {}",
-                                ethernet_packet.get_destination(),
-                                ethernet_packet.get_source(),
-                                ethernet_packet.get_ethertype()
-                            ) {
-                                eprintln!("Couldn't write to file: {}", e);
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        if let Err(e) = writeln!(file, "{}", e.to_string()) {
-                            eprintln!("Couldn't write to file: {}", e);
-                        }
-                    }
-                },
-                Err(e) => {
-                    if let Err(e) = writeln!(file, "{}", e.to_string()) {
-                        eprintln!("Couldn't write to file: {}", e);
-                    }
-                }
-                _ => eprintln!("Other"),
-            }
-        }
+        // let mut file = OpenOptions::new()
+        //     .write(true)
+        //     .append(true)
+        //     .open("ciao.txt")?;
+        // for i in &self.interfaces {
+        //     match datalink::channel(&i, Default::default()) {
+        //         Ok(Channel::Ethernet(_, mut rx)) => match rx.next() {
+        //             Ok(packet) => {
+        //                 if let Some(ethernet_packet) = EthernetPacket::new(packet) {
+        //                     if let Err(e) = writeln!(
+        //                         file,
+        //                         "{} => {}: {}",
+        //                         ethernet_packet.get_destination(),
+        //                         ethernet_packet.get_source(),
+        //                         ethernet_packet.get_ethertype()
+        //                     ) {
+        //                         eprintln!("Couldn't write to file: {}", e);
+        //                     }
+        //                 }
+        //             }
+        //             Err(e) => {
+        //                 if let Err(e) = writeln!(file, "{}", e.to_string()) {
+        //                     eprintln!("Couldn't write to file: {}", e);
+        //                 }
+        //             }
+        //         },
+        //         Err(e) => {
+        //             if let Err(e) = writeln!(file, "{}", e.to_string()) {
+        //                 eprintln!("Couldn't write to file: {}", e);
+        //             }
+        //         }
+        //         _ => eprintln!("Other"),
+        //     }
+        // }
 
         let [left_area, right_area] =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
