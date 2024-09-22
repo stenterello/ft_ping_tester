@@ -118,6 +118,7 @@ version = "0.1.0"
 dependencies = [
  "itertools",
  "pnet",
+ "pnet_packet",
  "ratatui",
  "serde",
  "serde_derive",

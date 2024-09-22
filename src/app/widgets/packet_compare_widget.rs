@@ -20,7 +20,7 @@ mod packet_viewer;
 enum State {
     Initial,
     #[default]
-    PermissionDenied,
+    PermissionCheck,
     Summary,
 }
 
@@ -83,7 +83,7 @@ impl TuiWidget for PacketCompareWidget {
                 //     _ => {}
                 // },
                 // State::Batch => {}
-                State::PermissionDenied => {}
+                State::PermissionCheck => {}
                 State::Summary => {
                     self.summary_widget.process_input(key_event);
                 }
