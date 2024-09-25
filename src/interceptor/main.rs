@@ -2,9 +2,29 @@ use std::io::ErrorKind;
 use std::time::Duration;
 use pnet::datalink::{interfaces, Channel, channel, Config, DataLinkReceiver, NetworkInterface};
 use sudo::{check, escalate_if_needed, RunningAs};
-use pnet_packet::{icmp, Packet};
+use pnet_packet::Packet;
+use pnet_packet::icmp::IcmpPacket;
 use pnet_packet::ipv4;
+use serde_json::{Map, Value};
 
+fn get_id(packet: &[u8]) -> u16 {
+    (&packet[4..6]).try_into().unwrap()
+}
+
+fn get_sequence_number(packet: &[u8]) -> u16 {
+    (&packet[6..8]).try_into().unwrap()
+}
+
+fn craft_json(packet: IcmpPacket) -> Value {
+    let mut obj = Map::new();
+    obj.insert("type".into(), Value::String(packet.get_icmp_type().to_string()));
+    obj.insert("code".into(), Value::String(packet.get_icmp_code().to_string()));
+    obj.insert("checksum".into(), Value::String(packet.get_checksum().to_string()));
+    obj.insert("id".into(), Value::String(get_id(packet.packet()).to_string()));
+    obj.insert("sequence".into(), Value::String(get_sequence_number(packet.packet()).to_string()));
+    obj.insert("data".into(), Value::String(&packet[8..].to_string()));
+    Value::Object(obj)
+}
 
 fn main() -> () {
     match check() {
@@ -33,12 +53,8 @@ fn main() -> () {
                 if let Some(eth_packet) = pnet_packet::ethernet::EthernetPacket::new(packet) {
                     if let Some(ipv4_packet) = ipv4::Ipv4Packet::new(eth_packet.payload()) {
                         if ipv4_packet.get_next_level_protocol() == pnet_packet::ip::IpNextHeaderProtocols::Icmp {
-                            if let Some(icmp_packet) = icmp::IcmpPacket::new(ipv4_packet.payload()) {
-                                println!("Packet found:");
-                                println!("{:?}", icmp_packet);
-                                icmp_packet.packet().iter().for_each(|u| print!("|{}|", u));
-                                let id: [u8; 2] = (&icmp_packet.packet()[4..6]).try_into().unwrap();
-                                println!("\nID IS {:?}", u16::from_be_bytes(id));
+                            if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
+                                print!("{}", craft_json(icmp_packet));
                             } else {
                                 println!("Cannot create ICMP packet");
                             }
