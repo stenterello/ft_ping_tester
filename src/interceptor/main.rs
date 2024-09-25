@@ -36,6 +36,9 @@ fn main() -> () {
                             if let Some(icmp_packet) = icmp::IcmpPacket::new(ipv4_packet.payload()) {
                                 println!("Packet found:");
                                 println!("{:?}", icmp_packet);
+                                icmp_packet.packet().iter().for_each(|u| print!("|{}|", u));
+                                let id: [u8; 2] = (&icmp_packet.packet()[4..6]).try_into().unwrap();
+                                println!("\nID IS {:?}", u16::from_be_bytes(id));
                             } else {
                                 println!("Cannot create ICMP packet");
                             }

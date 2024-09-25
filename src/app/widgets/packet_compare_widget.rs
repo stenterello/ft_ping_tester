@@ -42,7 +42,6 @@ pub struct PacketCompareWidget {
 impl PacketCompareWidget {
     pub fn new() -> Self {
         Self {
-            // interfaces: interfaces(),
             ft_ping_viewer: PacketViewer::new(ViewerType::FtPing),
             ping_viewer: PacketViewer::new(ViewerType::Ping),
             state: if let RunningAs::Root = sudo::check() {
