@@ -1,10 +1,11 @@
-use ratatui::buffer::Buffer;
-use ratatui::crossterm::event::KeyEvent;
+use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::Frame;
-use ratatui::layout::{Constraint, Layout, Rect};
-use ratatui::widgets::{Block, Borders, Clear, Paragraph, Widget};
-use tui_input::Input;
+use ratatui::layout::{Alignment, Constraint, Layout};
+use ratatui::prelude::{Color, Style};
+use ratatui::widgets::{Block, BorderType, Clear, Padding, Paragraph};
+use ratatui::widgets::block::Title;
 use crate::app::State;
+use crate::app::widgets::common::commands_widget::CommandsWidget;
 use crate::app::widgets::traits::tui_widget::TuiWidget;
 
 #[derive (Debug, Default)]
@@ -18,14 +19,38 @@ enum AuthenticationState {
 #[derive (Debug, Default)]
 pub struct InputDialog {
     state: AuthenticationState,
-    input_line: Input,
+    title: String,
     input: String,
+    commands_widget: CommandsWidget
+}
+
+impl InputDialog {
+    pub fn new(title: &str) -> Self {
+        Self {
+            state: AuthenticationState::default(),
+            title: String::from(title),
+            input: String::default(),
+            commands_widget: CommandsWidget::new(" Esc: Back | Enter: Confirm "),
+        }
+    }
 }
 
 impl TuiWidget for InputDialog {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match &self.state {
-            AuthenticationState::Editing => {},
+            AuthenticationState::Editing => {
+                match key_event.code {
+                    KeyCode::Char(c) => {
+                        if !c.is_control() || c.is_ascii_whitespace() {
+                           self.input.push(c);
+                        }
+                    },
+                    KeyCode::Backspace => {
+                        self.input.pop();
+                    },
+                    _ => {}
+                }
+            },
             AuthenticationState::Trying => {},
             AuthenticationState::Error => {}
         }
@@ -33,11 +58,28 @@ impl TuiWidget for InputDialog {
 
     fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
         let mut center_dialog = Layout::horizontal([Constraint::Percentage(30), Constraint::Percentage(40), Constraint::Percentage(30)]).areas::<3>(frame.size())[1];
-        center_dialog = Layout::vertical([Constraint::Percentage(40), Constraint::Percentage(20), Constraint::Percentage(40)]).areas::<3>(center_dialog)[1];
+        center_dialog = Layout::vertical([Constraint::Percentage(42), Constraint::Percentage(15), Constraint::Percentage(43)]).areas::<3>(center_dialog)[1];
         frame.render_widget(Clear, center_dialog);
-        let input = Paragraph::new(self.input_line.value())
-            .block(Block::default().borders(Borders::ALL).title("Input"));
+
+        let (commands_area, _) = Self::commands_area(&frame);
+
+        let block = Block::bordered()
+            .title(Title::from(self.title.as_str()).alignment(Alignment::Center))
+            .style(Style::default().fg(Color::Yellow))
+            .padding(Padding::new(1, 1, 1, 1))
+            .border_type(BorderType::Double).border_type(BorderType::Rounded);
+
+        let mut secret: String = String::default();
+        for _ in 0..self.input.len() {
+            secret.push('*');
+        }
+        let input = Paragraph::new(secret)
+            .alignment(Alignment::Center)
+            .block(block);
         frame.render_widget(input, center_dialog);
+        frame.render_widget(Clear, commands_area);
+        frame.render_widget(&self.commands_widget, commands_area);
+
         Ok(())
     }
 
@@ -50,10 +92,6 @@ impl TuiWidget for InputDialog {
     }
 
     fn state(&mut self) -> Option<State> {
-        todo!()
-    }
-
-    fn commands_area(frame: &Frame) -> (Rect, Rect) {
         todo!()
     }
 }

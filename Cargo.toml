@@ -17,7 +17,6 @@ ratatui = { version = "0.27.0", optional = true }
 pnet = { version = "0.35.0", optional = true }
 itertools = { version = "0.13.0", optional = true }
 pnet_packet = { version = "0.35.0", optional = true }
-tui-input = { version = "0.10.1", optional = true }
 
 [features]
 default = ["ft_ping_tester_deps"]
@@ -28,7 +27,7 @@ ft_ping_tester_deps = [
     "serde_derive",
     "serde_json",
     "toml",
-    "tui-input",
+
 ]
 interceptor_deps = ["pnet", "pnet_packet"]
 pnet_packet = ["dep:pnet_packet"]

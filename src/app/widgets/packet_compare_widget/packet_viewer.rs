@@ -5,7 +5,6 @@ use crate::app::widgets::packet_compare_widget::packet_viewer::PacketField::{
     ChecksumData, ChecksumLabel, CodeLabel, IdLabel, PayloadLabel, SequenceLabel, TypeLabel,
 };
 use crate::app::widgets::traits::thread_stringpuller::ViewerType;
-use ratatui::crossterm::style::Stylize;
 use ratatui::layout::Layout;
 use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
@@ -14,9 +13,9 @@ use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Rect},
     style::{Color, Style},
-    widgets::{block::Title, Block, BorderType, Row, Table, Widget},
+    widgets::{block::Title, Block, BorderType, Widget},
 };
-use std::cell::{Ref, RefCell};
+use std::cell::{RefCell};
 
 enum LineEnum {
     FirstLineLabel,
