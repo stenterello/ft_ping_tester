@@ -17,6 +17,7 @@ ratatui = { version = "0.27.0", optional = true }
 pnet = { version = "0.35.0", optional = true }
 itertools = { version = "0.13.0", optional = true }
 pnet_packet = { version = "0.35.0", optional = true }
+byteorder = { version = "1.5.0", optional = true }
 
 [features]
 default = ["ft_ping_tester_deps"]
@@ -28,7 +29,7 @@ ft_ping_tester_deps = [
     "toml",
 
 ]
-interceptor_deps = ["pnet", "pnet_packet"]
+interceptor_deps = ["pnet", "pnet_packet", "byteorder"]
 pnet_packet = ["dep:pnet_packet"]
 
 [[bin]]

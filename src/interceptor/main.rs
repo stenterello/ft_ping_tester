@@ -6,13 +6,16 @@ use pnet_packet::Packet;
 use pnet_packet::icmp::IcmpPacket;
 use pnet_packet::ipv4;
 use serde_json::{Map, Value};
+use byteorder::{ByteOrder, BigEndian};
 
 fn get_id(packet: &[u8]) -> u16 {
-    (&packet[4..6]).try_into().unwrap()
+    let id: &[u8; 2] = &packet[4..6].try_into().unwrap();
+    BigEndian::read_u16(id)
 }
 
 fn get_sequence_number(packet: &[u8]) -> u16 {
-    (&packet[6..8]).try_into().unwrap()
+    let seq = (&packet[6..8]).try_into().unwrap();
+    BigEndian::read_u16(seq)
 }
 
 fn craft_json(packet: IcmpPacket) -> Value {
@@ -22,7 +25,8 @@ fn craft_json(packet: IcmpPacket) -> Value {
     obj.insert("checksum".into(), Value::String(packet.get_checksum().to_string()));
     obj.insert("id".into(), Value::String(get_id(packet.packet()).to_string()));
     obj.insert("sequence".into(), Value::String(get_sequence_number(packet.packet()).to_string()));
-    obj.insert("data".into(), Value::String(&packet[8..].to_string()));
+    let data: Vec<u8> = packet.packet()[8..].to_owned();
+    obj.insert("data".into(), Value::String(String::from_utf8(data).unwrap()));
     Value::Object(obj)
 }
 
