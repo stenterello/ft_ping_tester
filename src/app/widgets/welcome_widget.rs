@@ -13,7 +13,6 @@ use ratatui::{
     widgets::Clear,
     Frame,
 };
-use ratatui::layout::Rect;
 use recompiling_notice::RecompilingNotice;
 
 #[derive(Debug, Default, PartialEq)]

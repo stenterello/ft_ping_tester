@@ -23,6 +23,11 @@ cargo build --bin interceptor --features="interceptor_deps"
 cargo run
 ```
 
+To generate docs and open them in your browser it is, as usual,
+```  
+cargo doc --open
+```
+
 ## Notes
 - To capture your ft_ping's output, is probably necessary to add this function to your code, since the buffering mode of output could stop the subprocess from sending bytes through its own pipe
     ```

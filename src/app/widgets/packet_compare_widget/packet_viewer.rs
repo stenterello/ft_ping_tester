@@ -4,7 +4,7 @@ use crate::app::widgets::packet_compare_widget::packet_viewer::LineEnum::{
 use crate::app::widgets::packet_compare_widget::packet_viewer::PacketField::{
     ChecksumData, ChecksumLabel, CodeLabel, IdLabel, PayloadLabel, SequenceLabel, TypeLabel,
 };
-use crate::app::widgets::traits::thread_stringpuller::ViewerType;
+use crate::app::widgets::traits::thread_stringpuller::{PingType};
 use ratatui::layout::Layout;
 use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
@@ -57,29 +57,22 @@ struct GridLayout {
     payload_data: Rect,
 }
 
+const INTERCEPTOR_PATH: &str = "target/debug/interceptor";
+
 #[derive(Debug, Default)]
 pub struct PacketViewer {
     name: String,
     layout: RefCell<GridLayout>,
-    interceptor_binary: String,
+
 }
 
 impl PacketViewer {
-    pub fn new(t: ViewerType) -> Self {
+    pub fn new(t: PingType) -> Self {
         Self {
             name: match t {
-                ViewerType::FtPing => String::from("ft_ping packet"),
-                ViewerType::Ping => String::from("ping packet"),
+                PingType::FtPing => String::from("ft_ping packet"),
+                PingType::Ping => String::from("ping packet"),
             },
-            interceptor_binary: String::from(
-                std::env::current_exe()
-                    .unwrap()
-                    .parent()
-                    .unwrap()
-                    .join("interceptor")
-                    .to_str()
-                    .unwrap(),
-            ),
             ..Default::default()
         }
     }

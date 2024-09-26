@@ -1,7 +1,5 @@
 use crate::app::utils::enums::TextType;
-use crate::app::utils::thread::Thread;
-use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
-use crate::app::widgets::traits::viewer::{OutputType, Viewer};
+use crate::app::widgets::traits::viewer::{Viewer};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -15,64 +13,23 @@ use ratatui::{
 
 #[derive(Debug)]
 pub struct OutputViewer {
-    thread: Thread,
+    name: String,
     text_to_display: TextType,
     error_to_display: TextType,
 }
 
-impl ThreadLauncher for OutputViewer {
-    fn is_running(&self) -> bool {
-        self.thread.is_running()
-    }
-}
-
-impl Viewer for OutputViewer {
-    fn thread_mut(&mut self) -> &mut Thread {
-        &mut self.thread
-    }
-
-    fn thread(&self) -> &Thread {
-        &self.thread
-    }
-
-    fn take_output(&mut self, t: OutputType) -> Vec<String> {
-        self.thread.take_output(t)
-    }
-
-    fn get_output(&self, t: OutputType) -> Vec<String> {
-        self.thread.get_output(t)
-    }
-
-    fn set_text_to_display(&mut self, display: TextType) -> () {
-        self.text_to_display = display;
-    }
-
-    fn set_error_to_display(&mut self, display: TextType) -> () {
-        self.error_to_display = display;
-    }
-}
-
 impl OutputViewer {
-    pub fn new(path: &str, name: &str) -> Self {
+    pub fn new(name: &str) -> Self {
         OutputViewer {
-            thread: Thread::new(path.into(), name.into()),
+            name: String::from(name),
             text_to_display: TextType::Standard(Vec::default()),
             error_to_display: TextType::Standard(Vec::default()),
         }
     }
 
-    pub fn start_process(&mut self, args: Vec<String>) -> () {
-        self.thread.start(args);
-    }
-
-    pub fn get_exit_status(&self) -> (Option<i32>, Option<String>) {
-        self.thread.get_exit()
-    }
-
     pub fn clear_buffers(&mut self) {
         self.text_to_display.clear();
         self.error_to_display.clear();
-        self.thread.clear_buffers();
     }
 
     fn retranslate(spans: &mut Vec<Span>) {
@@ -117,10 +74,20 @@ impl OutputViewer {
     }
 }
 
+impl Viewer for OutputViewer {
+    fn set_text_to_display(&mut self, display: TextType) -> () {
+        self.text_to_display = display;
+    }
+
+    fn set_error_to_display(&mut self, display: TextType) -> () {
+        self.error_to_display = display;
+    }
+}
+
 impl Widget for &OutputViewer {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut t: String = String::from(" ");
-        t.push_str((String::from(self.thread.name.clone()) + " ").as_str());
+        t.push_str((String::from(self.name.clone()) + " ").as_str());
         let title = Title::from(t.as_str().bold().yellow());
         let block = Block::bordered()
             .title(title.alignment(Alignment::Center))

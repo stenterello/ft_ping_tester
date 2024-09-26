@@ -7,14 +7,14 @@ use crate::app::widgets::common::message_widget::MessageWidget;
 use crate::app::widgets::common::processing_widget::ProcessingWidget;
 use crate::app::widgets::common::test_summary_widget::TestSummaryWidget;
 use crate::app::widgets::traits::comparer::Comparer;
-use crate::app::widgets::traits::thread_stringpuller::ViewerType::{FtPing, Ping};
+use crate::app::widgets::common::thread_manager::ThreadManager;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::widgets::Clear;
 use ratatui::Frame;
 use serde_json::Value;
 use std::io::{Error, ErrorKind, Result};
 
-pub enum ViewerType {
+pub enum PingType {
     FtPing,
     Ping,
 }
@@ -33,15 +33,16 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
     fn summary_widget(&mut self) -> &mut TestSummaryWidget;
     fn message_widget(&mut self) -> &mut MessageWidget;
     fn processing_widget(&mut self) -> &mut ProcessingWidget;
-    fn viewer_mut(&mut self, v: ViewerType) -> &mut impl Viewer;
-    fn viewer(&self, v: ViewerType) -> &impl Viewer;
+    fn thread_mng_mut(&mut self, v: PingType) -> &mut ThreadManager;
+    fn thread_mng(&self, v: PingType) -> &ThreadManager;
+    fn viewer(&self, v: PingType) -> &impl Viewer;
+    fn viewer_mut(&mut self, v: PingType) -> &mut impl Viewer;
     fn running(&self) -> bool;
-    fn set_running(&mut self, v: bool) -> ();
     fn to_run(&self) -> bool;
     fn set_to_run(&mut self, v: bool) -> ();
     fn increment_test_index(&mut self) -> ();
     fn set_finished(&mut self) -> ();
-
+    fn clear_buffers(&mut self) -> ();
     fn run_processes(&mut self) {
         match self.get_actual_test() {
             Some(test) => {
@@ -55,9 +56,8 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
 
                 self.summary_widget().add_test(arguments_vec.join(" "));
                 self.message_widget().set_arguments(arguments_vec.join(" "));
-                self.viewer_mut(FtPing).start_process(arguments_vec.clone());
-                self.viewer_mut(Ping).start_process(arguments_vec);
-                self.set_running(true);
+                self.thread_mng_mut(PingType::FtPing).start_process(arguments_vec.clone());
+                self.thread_mng_mut(PingType::Ping).start_process(arguments_vec);
                 self.message_widget().set_running(true);
                 self.increment_test_index();
             }
@@ -67,10 +67,10 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
         }
     }
 
-    fn check_thread_exit_status(&mut self, output_viewer: ViewerType) -> Result<()> {
+    fn check_thread_exit_status(&mut self, output_viewer: PingType) -> Result<()> {
         let viewer = match output_viewer {
-            FtPing => self.viewer_mut(FtPing),
-            Ping => self.viewer_mut(Ping),
+            PingType::FtPing => self.thread_mng_mut(PingType::FtPing),
+            PingType::Ping => self.thread_mng_mut(PingType::Ping),
         };
 
         match viewer.get_exit_status() {
@@ -87,24 +87,23 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
     }
 
     fn check_treads(&mut self) -> Result<()> {
-        if !self.viewer(FtPing).is_running() && !self.viewer(Ping).is_running() {
-            self.set_running(false);
+        if !self.thread_mng(PingType::FtPing).is_running() && !self.thread_mng(PingType::Ping).is_running() {
             self.message_widget().set_running(false);
         }
 
-        if let Err(e) = self.check_thread_exit_status(FtPing) {
+        if let Err(e) = self.check_thread_exit_status(PingType::FtPing) {
             return Err(e);
         }
 
-        if let Err(e) = self.check_thread_exit_status(Ping) {
+        if let Err(e) = self.check_thread_exit_status(PingType::Ping) {
             return Err(e);
         }
 
         Ok(())
     }
 
-    fn retrieve_exit_status(&mut self, v: ViewerType) -> ExitResult {
-        match self.viewer_mut(v).get_exit_status() {
+    fn retrieve_exit_status(&mut self, t: PingType) -> ExitResult {
+        match self.thread_mng_mut(t).get_exit_status() {
             (Some(code), None) => ExitResult::Correct(code),
             (Some(code), Some(err)) => ExitResult::Error(code, err),
             (None, None) => ExitResult::None,
@@ -128,16 +127,16 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
         }
 
         let (mut ft_ping_text, ping_text): (Vec<String>, Vec<String>) = (
-            self.viewer_mut(FtPing)
+            self.thread_mng_mut(PingType::FtPing)
                 .take_output(super::viewer::OutputType::Stdout),
-            self.viewer_mut(Ping)
+            self.thread_mng_mut(PingType::Ping)
                 .take_output(super::viewer::OutputType::Stdout),
         );
 
         let (mut ft_ping_error_text, mut ping_error_text): (Vec<String>, Vec<String>) = (
-            self.viewer_mut(FtPing)
+            self.thread_mng_mut(PingType::FtPing)
                 .take_output(super::viewer::OutputType::Stderr),
-            self.viewer_mut(Ping)
+            self.thread_mng_mut(PingType::Ping)
                 .take_output(super::viewer::OutputType::Stderr),
         );
 
@@ -150,8 +149,8 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
             self.compare_output(&mut ft_useful_error_text, &ping_useful_error_text),
         );
 
-        let ft_exit = self.retrieve_exit_status(FtPing);
-        let ping_exit = self.retrieve_exit_status(Ping);
+        let ft_exit = self.retrieve_exit_status(PingType::FtPing);
+        let ping_exit = self.retrieve_exit_status(PingType::Ping);
 
         if ft_exit != ping_exit {
             self.message_widget().set_errors(true);
@@ -193,16 +192,16 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller {
                 .areas(upper_area);
 
         let (mut ft_ping_text, ping_text): (Vec<String>, Vec<String>) = (
-            self.viewer(FtPing)
+            self.thread_mng(PingType::FtPing)
                 .get_output(super::viewer::OutputType::Stdout),
-            self.viewer(Ping)
+            self.thread_mng(PingType::Ping)
                 .get_output(super::viewer::OutputType::Stdout),
         );
 
         let (mut ft_ping_error_text, mut ping_error_text): (Vec<String>, Vec<String>) = (
-            self.viewer(FtPing)
+            self.thread_mng(PingType::FtPing)
                 .get_output(super::viewer::OutputType::Stderr),
-            self.viewer(Ping)
+            self.thread_mng(PingType::Ping)
                 .get_output(super::viewer::OutputType::Stderr),
         );
 
@@ -217,8 +216,8 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller {
             self.compare_output(&mut ft_useful_error_text, &ping_useful_error_text),
         );
 
-        let ft_exit = self.retrieve_exit_status(FtPing);
-        let ping_exit = self.retrieve_exit_status(Ping);
+        let ft_exit = self.retrieve_exit_status(PingType::FtPing);
+        let ping_exit = self.retrieve_exit_status(PingType::Ping);
 
         self.message_widget().set_codes(ft_exit, ping_exit);
 
@@ -260,13 +259,13 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller {
                 .insert_str(0, (ping_unnecessary_path + ": ").as_str());
         }
 
-        self.viewer_mut(FtPing)
+        self.viewer_mut(PingType::FtPing)
             .set_text_to_display(ft_ping_formatted);
-        self.viewer_mut(Ping)
+        self.viewer_mut(PingType::Ping)
             .set_text_to_display(TextType::Standard(ping_text));
-        self.viewer_mut(FtPing)
+        self.viewer_mut(PingType::FtPing)
             .set_error_to_display(ft_ping_error_formatted);
-        self.viewer_mut(Ping)
+        self.viewer_mut(PingType::Ping)
             .set_error_to_display(TextType::Standard(ping_useful_error_text.to_owned()));
 
         if self.to_clear() {
@@ -274,8 +273,8 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller {
             frame.render_widget(Clear, upper_right_area);
             self.set_to_clear(false);
         } else {
-            self.render_viewer(frame, FtPing, upper_left_area);
-            self.render_viewer(frame, Ping, upper_right_area);
+            self.render_viewer(frame, PingType::FtPing, upper_left_area);
+            self.render_viewer(frame, PingType::Ping, upper_right_area);
         }
 
         frame.render_widget(&*self.message_widget(), status_area);
@@ -283,5 +282,5 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller {
         Ok(())
     }
 
-    fn render_viewer(&mut self, frame: &mut Frame, t: ViewerType, area: Rect);
+    fn render_viewer(&mut self, frame: &mut Frame, t: PingType, area: Rect);
 }

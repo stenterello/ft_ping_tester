@@ -83,7 +83,7 @@ impl TuiWidget for InputDialog {
         Ok(())
     }
 
-    fn set_to_clear(&mut self, v: bool) -> () {
+    fn set_to_clear(&mut self, _v: bool) -> () {
         todo!()
     }
 

@@ -8,6 +8,19 @@ use pnet_packet::ipv4;
 use serde_json::{Map, Value};
 use byteorder::{ByteOrder, BigEndian};
 
+fn get_type(packet: &[u8]) -> u8 {
+    packet[0..1][0]
+}
+
+fn get_code(packet: &[u8]) -> u8 {
+    packet[1..2][0]
+}
+
+fn get_checksum(packet: &[u8]) -> u16 {
+    let checksum: &[u8; 2] = &packet[2..4].try_into().unwrap();
+    BigEndian::read_u16(checksum)
+}
+
 fn get_id(packet: &[u8]) -> u16 {
     let id: &[u8; 2] = &packet[4..6].try_into().unwrap();
     BigEndian::read_u16(id)
@@ -20,13 +33,12 @@ fn get_sequence_number(packet: &[u8]) -> u16 {
 
 fn craft_json(packet: IcmpPacket) -> Value {
     let mut obj = Map::new();
-    obj.insert("type".into(), Value::String(packet.get_icmp_type().to_string()));
-    obj.insert("code".into(), Value::String(packet.get_icmp_code().to_string()));
+    obj.insert("type".into(), Value::String(get_type(packet.packet()).to_string()));
+    obj.insert("code".into(), Value::String(get_code(packet.packet()).to_string()));
     obj.insert("checksum".into(), Value::String(packet.get_checksum().to_string()));
     obj.insert("id".into(), Value::String(get_id(packet.packet()).to_string()));
     obj.insert("sequence".into(), Value::String(get_sequence_number(packet.packet()).to_string()));
-    let data: Vec<u8> = packet.packet()[8..].to_owned();
-    obj.insert("data".into(), Value::String(String::from_utf8(data).unwrap()));
+    obj.insert("data".into(), Value::String(String::from_utf8_lossy(&packet.packet()[8..]).to_string()));
     Value::Object(obj)
 }
 
@@ -52,33 +64,40 @@ fn main() -> () {
 
     for mut r in receivers {
         println!("interface: {}", r.0.name);
-        match r.1.next() {
-            Ok(packet) => {
-                if let Some(eth_packet) = pnet_packet::ethernet::EthernetPacket::new(packet) {
-                    if let Some(ipv4_packet) = ipv4::Ipv4Packet::new(eth_packet.payload()) {
-                        if ipv4_packet.get_next_level_protocol() == pnet_packet::ip::IpNextHeaderProtocols::Icmp {
-                            if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
-                                print!("{}", craft_json(icmp_packet));
+        let mut tries = 0;
+        loop {
+            match r.1.next() {
+                Ok(packet) => {
+                    if let Some(eth_packet) = pnet_packet::ethernet::EthernetPacket::new(packet) {
+                        if let Some(ipv4_packet) = ipv4::Ipv4Packet::new(eth_packet.payload()) {
+                            if ipv4_packet.get_next_level_protocol() == pnet_packet::ip::IpNextHeaderProtocols::Icmp {
+                                if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
+                                    print!("{}", craft_json(icmp_packet));
+                                } else {
+                                    println!("Cannot create ICMP packet");
+                                }
                             } else {
-                                println!("Cannot create ICMP packet");
+                                println!("Not an ICMP packet");
                             }
                         } else {
-                            println!("Not an ICMP packet");
+                            println!("Not an IPv4 packet");
                         }
                     } else {
-                        println!("Not an IPv4 packet");
+                        println!("Cannot extract ethernet frame");
                     }
-                } else {
-                    println!("Cannot extract ethernet frame");
                 }
+                Err(e) => {
+                    if e.kind() == ErrorKind::TimedOut {
+                        eprintln!("No packets found");
+                    } else {
+                        eprintln!("{}", e);
+                    }
+                },
             }
-            Err(e) => {
-                if e.kind() == ErrorKind::TimedOut {
-                    eprintln!("No packets found");
-                } else {
-                    eprintln!("{}", e);
-                }
-            },
+            tries += 1;
+            if tries == 10 {
+                break;
+            }
         }
         println!();
     }

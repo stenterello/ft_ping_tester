@@ -1,6 +1,6 @@
 use super::{
     common::test_summary_widget::TestSummaryWidget,
-    traits::{thread_stringpuller::ViewerType, tui_widget::TuiWidget},
+    traits::{thread_stringpuller::PingType, tui_widget::TuiWidget},
 };
 use packet_viewer::PacketViewer;
 use input_dialog::InputDialog;
@@ -9,8 +9,10 @@ use ratatui::{
     layout::Layout,
     Frame,
 };
+use ratatui::widgets::Clear;
+use ratatui::prelude::Constraint;
+use crate::app::widgets::common::commands_widget::CommandsWidget;
 use serde_json::Value;
-use std::error::Error;
 use std::io::Result;
 use sudo::RunningAs;
 
@@ -42,8 +44,8 @@ pub struct PacketCompareWidget {
 impl PacketCompareWidget {
     pub fn new() -> Self {
         Self {
-            ft_ping_viewer: PacketViewer::new(ViewerType::FtPing),
-            ping_viewer: PacketViewer::new(ViewerType::Ping),
+            ft_ping_viewer: PacketViewer::new(PingType::FtPing),
+            ping_viewer: PacketViewer::new(PingType::Ping),
             state: if let RunningAs::Root = sudo::check() {
                 State::Initial
             } else {
@@ -59,13 +61,6 @@ impl PacketCompareWidget {
         self.tests_idx = usize::default();
     }
 }
-
-use ratatui::prelude::Constraint;
-use std::fs::OpenOptions;
-use std::hash::Hash;
-use std::io::prelude::*;
-use ratatui::widgets::Clear;
-use crate::app::widgets::common::commands_widget::CommandsWidget;
 
 impl TuiWidget for PacketCompareWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
@@ -99,7 +94,7 @@ impl TuiWidget for PacketCompareWidget {
         let (commands_area, area) = Self::commands_area(&frame);
         let [left_area, right_area] =
             Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-                .areas(frame.size());
+                .areas(area);
 
         frame.render_widget(&self.ft_ping_viewer, left_area);
         frame.render_widget(&self.ping_viewer, right_area);

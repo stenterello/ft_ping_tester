@@ -9,16 +9,16 @@ use crate::app::widgets::traits::thread_stringpuller::{
     ThreadStringPuller, ThreadStringPullerWidget,
 };
 use crate::app::widgets::traits::tui_widget::TuiWidget;
-// use crate::app::widgets::traits::viewer::Viewer;
 use ratatui::{
     crossterm::event::{KeyCode, KeyEvent},
     Frame,
 };
 use serde_json::Value;
 use std::io::Result;
-
+use crate::app::widgets::common::thread_manager::ThreadManager;
+use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
 use super::common::processing_widget::ProcessingWidget;
-use super::traits::thread_stringpuller::ViewerType;
+use super::traits::thread_stringpuller::PingType;
 use super::traits::viewer::Viewer;
 
 #[derive(Debug, Default)]
@@ -33,19 +33,52 @@ enum State {
 #[derive(Debug)]
 pub struct ErrorHandling {
     choose_method_widget: ChooseTestMethod,
+    ft_ping_thread_mng: ThreadManager,
+    ping_thread_mng: ThreadManager,
     ft_ping_output_viewer: OutputViewer,
     ping_output_viewer: OutputViewer,
     message_widget: MessageWidget,
     commands_widget: CommandsWidget,
     summary_widget: TestSummaryWidget,
     processing_widget: ProcessingWidget,
-    running: bool,
     to_run: bool,
     tests: Value,
     tests_idx: usize,
     to_clear: bool,
     state: State,
     upper_state: Option<crate::app::State>,
+}
+
+impl ErrorHandling {
+    pub fn new(locations: &Locations, tests: Value) -> Self {
+        ErrorHandling {
+            choose_method_widget: ChooseTestMethod::new(vec![
+                "Interactive".to_string(),
+                "Immediate".to_string(),
+            ]),
+            ft_ping_thread_mng: ThreadManager::new(
+                &locations.ft_ping_dir,
+                &locations.ft_ping_name
+            ),
+            ft_ping_output_viewer: OutputViewer::new(&locations.ft_ping_name),
+            ping_thread_mng: ThreadManager::new(&locations.ping_dir, &locations.ping_name),
+            ping_output_viewer: OutputViewer::new(&locations.ping_name),
+            message_widget: MessageWidget::default(),
+            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test "),
+            summary_widget: TestSummaryWidget::default(),
+            processing_widget: ProcessingWidget::default(),
+            to_run: true,
+            tests,
+            tests_idx: usize::default(),
+            to_clear: false,
+            state: State::default(),
+            upper_state: None,
+        }
+    }
+
+    pub fn reset_test_index(&mut self) -> () {
+        self.tests_idx = usize::default();
+    }
 }
 
 impl TuiWidget for ErrorHandling {
@@ -69,10 +102,9 @@ impl TuiWidget for ErrorHandling {
                 }
                 State::Interactive => match key_event.code {
                     KeyCode::Char(' ') => {
-                        if !self.running && !self.to_run {
+                        if !self.running() && !self.to_run {
                             self.to_run = true;
-                            self.ft_ping_output_viewer.clear_buffers();
-                            self.ping_output_viewer.clear_buffers();
+                            self.clear_buffers();
                         }
                     }
                     _ => {}
@@ -148,26 +180,22 @@ impl ThreadStringPuller for ErrorHandling {
         &mut self.processing_widget
     }
 
-    fn viewer_mut(&mut self, v: ViewerType) -> &mut impl Viewer {
+    fn viewer_mut(&mut self, v: PingType) -> &mut impl Viewer {
         match v {
-            ViewerType::FtPing => &mut self.ft_ping_output_viewer,
-            ViewerType::Ping => &mut self.ping_output_viewer,
+            PingType::FtPing => &mut self.ft_ping_output_viewer,
+            PingType::Ping => &mut self.ping_output_viewer,
         }
     }
 
-    fn viewer(&self, v: ViewerType) -> &impl Viewer {
+    fn viewer(&self, v: PingType) -> &impl Viewer {
         match v {
-            ViewerType::FtPing => &self.ft_ping_output_viewer,
-            ViewerType::Ping => &self.ping_output_viewer,
+            PingType::FtPing => &self.ft_ping_output_viewer,
+            PingType::Ping => &self.ping_output_viewer,
         }
     }
 
     fn running(&self) -> bool {
-        self.running
-    }
-
-    fn set_running(&mut self, v: bool) -> () {
-        self.running = v;
+        self.ft_ping_thread_mng.is_running() || self.ping_thread_mng.is_running()
     }
 
     fn to_run(&self) -> bool {
@@ -185,6 +213,27 @@ impl ThreadStringPuller for ErrorHandling {
     fn set_finished(&mut self) -> () {
         self.state = State::Summary;
     }
+
+    fn thread_mng_mut(&mut self, t: PingType) -> &mut ThreadManager {
+        match t {
+            PingType::FtPing => &mut self.ft_ping_thread_mng,
+            PingType::Ping => &mut self.ping_thread_mng
+        }
+    }
+
+    fn thread_mng(&self, t: PingType) -> &ThreadManager {
+        match t {
+            PingType::FtPing => &self.ft_ping_thread_mng,
+            PingType::Ping => &self.ping_thread_mng
+        }
+    }
+
+    fn clear_buffers(&mut self) -> () {
+        self.ft_ping_output_viewer.clear_buffers();
+        self.ping_output_viewer.clear_buffers();
+        self.ft_ping_thread_mng.thread_mut().clear_buffers();
+        self.ping_thread_mng.thread_mut().clear_buffers();
+    }
 }
 
 impl ThreadStringPullerWidget for ErrorHandling {
@@ -192,41 +241,11 @@ impl ThreadStringPullerWidget for ErrorHandling {
         &mut self.commands_widget
     }
 
-    fn render_viewer(&mut self, frame: &mut Frame, t: ViewerType, area: ratatui::prelude::Rect) {
+    fn render_viewer(&mut self, frame: &mut Frame, t: PingType, area: ratatui::prelude::Rect) {
         match t {
-            ViewerType::FtPing => frame.render_widget(&self.ft_ping_output_viewer, area),
-            ViewerType::Ping => frame.render_widget(&self.ping_output_viewer, area),
+            PingType::FtPing => frame.render_widget(&self.ft_ping_output_viewer, area),
+            PingType::Ping => frame.render_widget(&self.ping_output_viewer, area),
         }
     }
 }
 
-impl ErrorHandling {
-    pub fn new(locations: &Locations, tests: Value) -> Self {
-        ErrorHandling {
-            choose_method_widget: ChooseTestMethod::new(vec![
-                "Interactive".to_string(),
-                "Immediate".to_string(),
-            ]),
-            ft_ping_output_viewer: OutputViewer::new(
-                &locations.ft_ping_dir,
-                &locations.ft_ping_name,
-            ),
-            ping_output_viewer: OutputViewer::new(&locations.ping_dir, &locations.ping_name),
-            message_widget: MessageWidget::default(),
-            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test "),
-            summary_widget: TestSummaryWidget::default(),
-            processing_widget: ProcessingWidget::default(),
-            running: false,
-            to_run: true,
-            tests,
-            tests_idx: usize::default(),
-            to_clear: false,
-            state: State::default(),
-            upper_state: None,
-        }
-    }
-
-    pub fn reset_test_index(&mut self) -> () {
-        self.tests_idx = usize::default();
-    }
-}
