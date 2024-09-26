@@ -57,13 +57,10 @@ struct GridLayout {
     payload_data: Rect,
 }
 
-const INTERCEPTOR_PATH: &str = "target/debug/interceptor";
-
 #[derive(Debug, Default)]
 pub struct PacketViewer {
     name: String,
     layout: RefCell<GridLayout>,
-
 }
 
 impl PacketViewer {

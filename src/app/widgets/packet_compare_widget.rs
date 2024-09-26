@@ -15,6 +15,9 @@ use crate::app::widgets::common::commands_widget::CommandsWidget;
 use serde_json::Value;
 use std::io::Result;
 use sudo::RunningAs;
+use crate::app::utils::config::config_extractor::Locations;
+use crate::app::utils::thread::Thread;
+use crate::app::widgets::common::thread_manager::ThreadManager;
 
 mod packet_viewer;
 mod input_dialog;
@@ -24,10 +27,12 @@ enum State {
     Initial,
     #[default]
     PermissionCheck,
+    WaitingProcess,
+    PresentingResults,
     Summary,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct PacketCompareWidget {
     state: State,
     upper_state: Option<crate::app::State>,
@@ -36,13 +41,15 @@ pub struct PacketCompareWidget {
     summary_widget: TestSummaryWidget,
     to_clear: bool,
     password_dialog: InputDialog,
+    ft_ping_thread_mng: ThreadManager,
+    ping_thread_mng: ThreadManager,
     ft_ping_viewer: PacketViewer,
     ping_viewer: PacketViewer,
     commands_widget: CommandsWidget,
 }
 
 impl PacketCompareWidget {
-    pub fn new() -> Self {
+    pub fn new(locations: &Locations, tests: Value) -> Self {
         Self {
             ft_ping_viewer: PacketViewer::new(PingType::FtPing),
             ping_viewer: PacketViewer::new(PingType::Ping),
@@ -53,7 +60,13 @@ impl PacketCompareWidget {
             },
             password_dialog: InputDialog::new("Insert password"),
             commands_widget: CommandsWidget::new(" ↑/↓: Move Up/Down | Enter: Select | Q: Back "),
-            ..Default::default()
+            ft_ping_thread_mng: ThreadManager::new(&locations.ft_ping_dir, &locations.ft_ping_name),
+            ping_thread_mng: ThreadManager::new(&locations.ping_dir, &locations.ping_name),
+            upper_state: None,
+            tests,
+            tests_idx: usize::default(),
+            summary_widget: TestSummaryWidget::default(),
+            to_clear: false,
         }
     }
 
@@ -86,6 +99,7 @@ impl TuiWidget for PacketCompareWidget {
                 State::Summary => {
                     self.summary_widget.process_input(key_event);
                 }
+                _ => {}
             };
         }
     }

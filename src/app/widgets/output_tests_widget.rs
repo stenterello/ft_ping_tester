@@ -43,6 +43,37 @@ pub struct OutputTestsWidget {
     upper_state: Option<crate::app::State>,
 }
 
+impl OutputTestsWidget {
+    pub fn new(locations: &Locations, tests: Value) -> Self {
+        OutputTestsWidget {
+            ft_ping_thread_mng: ThreadManager::new(
+                &locations.ft_ping_dir,
+                &locations.ft_ping_name,
+            ),
+            ping_thread_mng: ThreadManager::new(&locations.ping_dir, &locations.ping_name),
+            ft_ping_output_viewer: OutputViewer::new(
+                &locations.ft_ping_name,
+            ),
+            ping_output_viewer: OutputViewer::new(&locations.ping_name),
+            message_widget: MessageWidget::default(),
+            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test "),
+            summary_widget: TestSummaryWidget::default(),
+            processing_widget: ProcessingWidget::default(),
+            to_run: true,
+            tests,
+            tests_idx: usize::default(),
+            to_clear: false,
+            state: State::default(),
+            upper_state: None,
+        }
+    }
+
+    pub fn reset_test_index(&mut self) -> () {
+        self.tests_idx = usize::default();
+    }
+}
+
+
 impl TuiWidget for OutputTestsWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         match self.state {
@@ -186,35 +217,5 @@ impl ThreadStringPullerWidget for OutputTestsWidget {
             PingType::FtPing => frame.render_widget(&self.ft_ping_output_viewer, area),
             PingType::Ping => frame.render_widget(&self.ping_output_viewer, area),
         }
-    }
-}
-
-impl OutputTestsWidget {
-    pub fn new(locations: &Locations, tests: Value) -> Self {
-        OutputTestsWidget {
-            ft_ping_thread_mng: ThreadManager::new(
-                &locations.ft_ping_dir,
-                &locations.ft_ping_name,
-            ),
-            ping_thread_mng: ThreadManager::new(&locations.ping_dir, &locations.ping_name),
-            ft_ping_output_viewer: OutputViewer::new(
-                &locations.ft_ping_name,
-            ),
-            ping_output_viewer: OutputViewer::new(&locations.ping_name),
-            message_widget: MessageWidget::default(),
-            commands_widget: CommandsWidget::new(" Q: Back | Space: Next test "),
-            summary_widget: TestSummaryWidget::default(),
-            processing_widget: ProcessingWidget::default(),
-            to_run: true,
-            tests,
-            tests_idx: usize::default(),
-            to_clear: false,
-            state: State::default(),
-            upper_state: None,
-        }
-    }
-
-    pub fn reset_test_index(&mut self) -> () {
-        self.tests_idx = usize::default();
     }
 }

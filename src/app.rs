@@ -55,7 +55,10 @@ impl App {
                     &config.locations,
                     tests["output_tests"].clone(),
                 ),
-                packet_compare_widget: PacketCompareWidget::new(),
+                packet_compare_widget: PacketCompareWidget::new(
+                    &config.locations,
+                    tests["packet_tests"].clone(),
+                ),
                 state: State::default(),
                 about_to_quit: false,
             }),
