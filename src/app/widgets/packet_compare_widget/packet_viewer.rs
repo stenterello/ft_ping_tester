@@ -16,6 +16,8 @@ use ratatui::{
     widgets::{block::Title, Block, BorderType, Widget},
 };
 use std::cell::{RefCell};
+use crate::app::utils::enums::TextType;
+use crate::app::widgets::traits::viewer::Viewer;
 
 enum LineEnum {
     FirstLineLabel,
@@ -61,6 +63,16 @@ struct GridLayout {
 pub struct PacketViewer {
     name: String,
     layout: RefCell<GridLayout>,
+}
+
+impl Viewer for PacketViewer {
+    fn set_text_to_display(&mut self, t: TextType) -> () {
+        todo!()
+    }
+
+    fn set_error_to_display(&mut self, t: TextType) -> () {
+        todo!()
+    }
 }
 
 impl PacketViewer {
@@ -190,7 +202,6 @@ impl Widget for &PacketViewer {
 
         let cell_block = Block::bordered()
             .style(Style::default().fg(Color::Yellow))
-            .padding(Padding::new(1, 1, 1, 1))
             .border_type(BorderType::Double);
 
         self.draw_paragraph(TypeLabel, cell_block.clone(), buf);

@@ -21,7 +21,7 @@ pub struct MessageWidget {
 impl MessageWidget {
     pub fn new() -> Self {
         MessageWidget {
-            running_test: false,
+            running_test: true,
             arguments: String::default(),
             has_errors: false,
             codes: (-1, -1),
@@ -74,17 +74,23 @@ impl Widget for &MessageWidget {
 
         Table::new(
             [
-                Row::new(vec![
-                    "ft_ping".to_string(),
-                    self.codes.0.to_string(),
-                    if self.errors() {
-                        "🔴".to_string()
-                    } else {
-                        "🟢".to_string()
-                    },
-                ])
+                Row::new(if self.running_test {
+                    vec![
+                        "ft_ping".to_string(),
+                        self.codes.0.to_string(),
+                        if self.errors() {
+                            "🔴".to_string()
+                        } else {
+                            "🟢".to_string()
+                        },
+                    ]
+                } else {
+                    vec![]
+                })
                 .style(Style::default().white()),
-                Row::new(vec!["ping".to_string(), self.codes.1.to_string()])
+                Row::new(if self.running_test {
+                    vec!["ping".to_string(), self.codes.1.to_string()]
+                } else {vec![]})
                     .style(Style::default().white()),
             ],
             [
