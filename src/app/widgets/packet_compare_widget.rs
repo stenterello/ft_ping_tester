@@ -13,11 +13,12 @@ use ratatui::widgets::Clear;
 use ratatui::prelude::Constraint;
 use crate::app::widgets::common::commands_widget::CommandsWidget;
 use serde_json::Value;
-use std::io::Result;
+use std::io::{stderr, Result};
+use std::process::{Command, Stdio};
 use sudo::RunningAs;
 use crate::app::utils::config::config_extractor::Locations;
-use crate::app::utils::thread::Thread;
 use crate::app::widgets::common::thread_manager::ThreadManager;
+use crate::app::widgets::packet_compare_widget::input_dialog::AuthenticationState;
 
 mod packet_viewer;
 mod input_dialog;
@@ -55,6 +56,8 @@ impl PacketCompareWidget {
             ping_viewer: PacketViewer::new(PingType::Ping),
             state: if let RunningAs::Root = sudo::check() {
                 State::Initial
+            } else if let true = Self::has_permissions() {
+                State::Initial
             } else {
                 State::default()
             },
@@ -68,6 +71,18 @@ impl PacketCompareWidget {
             summary_widget: TestSummaryWidget::default(),
             to_clear: false,
         }
+    }
+
+    fn has_permissions() -> bool {
+        let cmd = Command::new("sudo")
+            .args(vec!["-n", "true"])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .unwrap();
+        if let Some(0) = cmd.status.code() {
+            true
+        } else { false }
     }
 
     pub fn reset_test_index(&mut self) -> () {
@@ -93,7 +108,14 @@ impl TuiWidget for PacketCompareWidget {
                             self.reset_test_index();
                             self.summary_widget.clear_results();
                         }
-                        _ => self.password_dialog.process_input(key_event)
+                        _ => {
+                            self.password_dialog.process_input(key_event);
+                            match self.password_dialog.authentication_state() {
+                                AuthenticationState::Success => self.state = State::Initial,
+                                AuthenticationState::Editing => {},
+                                _ => {}
+                            }
+                        }
                     }
                 }
                 State::Summary => {

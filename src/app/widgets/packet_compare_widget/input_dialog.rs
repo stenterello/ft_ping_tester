@@ -1,3 +1,5 @@
+use std::io::Write;
+use std::process::{exit, Command, Stdio};
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout};
@@ -9,11 +11,12 @@ use crate::app::widgets::common::commands_widget::CommandsWidget;
 use crate::app::widgets::traits::tui_widget::TuiWidget;
 
 #[derive (Debug, Default)]
-enum AuthenticationState {
+pub enum AuthenticationState {
     #[default]
     Editing,
     Trying,
     Error,
+    Success,
 }
 
 #[derive (Debug, Default)]
@@ -24,6 +27,9 @@ pub struct InputDialog {
     commands_widget: CommandsWidget
 }
 
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+
 impl InputDialog {
     pub fn new(title: &str) -> Self {
         Self {
@@ -32,6 +38,45 @@ impl InputDialog {
             input: String::default(),
             commands_widget: CommandsWidget::new(" Esc: Back | Enter: Confirm "),
         }
+    }
+
+    fn excalate(&mut self) -> () {
+        let mut cmd = Command::new("sudo")
+            .args(vec!["-S", "true"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+
+        cmd.stdin.take().unwrap().write(self.input.as_bytes()).unwrap();
+
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("ciao.txt")
+            .unwrap();
+
+        if let Ok(exit) = cmd.wait() {
+            if let Some(0) = exit.code() {
+                if let Err(e) = writeln!(file, "Exit status ok, permission got") {
+                    eprintln!("Couldn't write to file: {}", e);
+                }
+                self.state = AuthenticationState::Success;
+            } else {
+                if let Err(e) = writeln!(file, "Error") {
+                    eprintln!("Couldn't write to file: {}", e);
+                }
+            }
+        } else {
+            if let Err(e) = writeln!(file, "Error") {
+                eprintln!("Couldn't write to file: {}", e);
+            }
+        }
+    }
+
+    pub fn authentication_state(&self) -> &AuthenticationState {
+        &self.state
     }
 }
 
@@ -48,11 +93,13 @@ impl TuiWidget for InputDialog {
                     KeyCode::Backspace => {
                         self.input.pop();
                     },
+                    KeyCode::Enter => {
+                        self.excalate();
+                    },
                     _ => {}
                 }
             },
-            AuthenticationState::Trying => {},
-            AuthenticationState::Error => {}
+            _ => {}
         }
     }
 
