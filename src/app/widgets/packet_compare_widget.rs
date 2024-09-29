@@ -13,7 +13,7 @@ use ratatui::widgets::Clear;
 use ratatui::prelude::Constraint;
 use crate::app::widgets::common::commands_widget::CommandsWidget;
 use serde_json::Value;
-use std::io::{stderr, Result};
+use std::io::{Result};
 use std::process::{Command, Stdio};
 use sudo::RunningAs;
 use crate::app::utils::config::config_extractor::Locations;
@@ -24,14 +24,18 @@ use crate::app::widgets::packet_compare_widget::input_dialog::AuthenticationStat
 use crate::app::widgets::traits::comparer::Comparer;
 use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
 use crate::app::widgets::traits::thread_stringpuller::ThreadStringPuller;
-use crate::app::widgets::traits::viewer::Viewer;
+use crate::app::widgets::traits::viewer::{OutputType, Viewer};
 
 mod packet_viewer;
 mod input_dialog;
+const INTERCEPTOR_PATH: &str = "target/debug/";
+const INTERCEPTOR_NAME: &str = "interceptor";
 
 #[derive(Debug, Default, PartialEq)]
 enum State {
-    Initial,
+    NoOp,
+    RunningPing,
+    RunningFtPing,
     #[default]
     PermissionCheck,
     WaitingProcess,
@@ -55,6 +59,7 @@ pub struct PacketCompareWidget {
     ping_viewer: PacketViewer,
     commands_widget: CommandsWidget,
     to_run: bool,
+    interceptor: ThreadManager,
 }
 
 impl PacketCompareWidget {
@@ -70,7 +75,7 @@ impl PacketCompareWidget {
             ft_ping_viewer: PacketViewer::new(PingType::FtPing),
             ping_viewer: PacketViewer::new(PingType::Ping),
             state: if running {
-                State::Initial
+                State::NoOp
             } else {
                 State::default()
             },
@@ -86,7 +91,8 @@ impl PacketCompareWidget {
                 MessageWidget::new()
             } else {MessageWidget::default()},
             to_clear: false,
-            to_run: running
+            to_run: running,
+            interceptor: ThreadManager::new(INTERCEPTOR_PATH, INTERCEPTOR_NAME)
         }
     }
 
@@ -102,31 +108,38 @@ impl PacketCompareWidget {
         } else { false }
     }
 
-    fn handle_running(&mut self) -> () {
+    fn handle_state(&mut self) -> () {
         match &self.state {
-            State::Initial => {
-                match self.get_actual_test() {
-                    Some(test) => {
-                        let arguments_vec = match test.as_array() {
-                            Some(s) => s
-                                .iter()
-                                .filter_map(|val| val.as_str().map(|s| s.to_string()))
-                                .collect(),
-                            None => Vec::new(),
-                        };
-
-                        self.summary_widget().add_test(arguments_vec.join(" "));
-                        self.message_widget().set_arguments(arguments_vec.join(" "));
-                        self.thread_mng_mut(PingType::FtPing).start_process(arguments_vec.clone());
-                        self.thread_mng_mut(PingType::Ping).start_process(arguments_vec);
-                        self.message_widget().set_running(true);
-                        self.increment_test_index();
+            State::RunningPing => {
+                let mut file = OpenOptions::new()
+                    .write(true)
+                    .append(true)
+                    .open("ciao.txt")
+                    .unwrap();
+                if !self.ping_thread_mng.is_running() && !self.interceptor.is_running() {
+                    self.state = State::RunningFtPing;
+                    if let Err(e) = writeln!(file, "Finished with {}", self.ping_thread_mng.get_exit_status().0.unwrap()) {
+                        eprintln!("Couldn't write to file: {}", e);
                     }
-                    None => {
-                        self.set_finished();
+                } else {
+                    // if let Err(e) = writeln!(file, "ping running?: {}", self.ping_thread_mng.is_running()) {
+                    //     eprintln!("Couldn't write to file: {}", e);
+                    // }
+                    // if let Err(e) = writeln!(file, "interceptor running?: {}", self.interceptor.is_running()) {
+                    //     eprintln!("Couldn't write to file: {}", e);
+                    // }
+                    for i in self.interceptor.take_output(OutputType::Stdout) {
+                        if let Err(e) = writeln!(file, "interceptor text: {}", i) {
+                            eprintln!("Couldn't write to file: {}", e);
+                        }
                     }
                 }
             },
+            State::RunningFtPing => {
+                if !self.ft_ping_thread_mng.is_running() && !self.interceptor.is_running() {
+                    self.state = State::PresentingResults;
+                }
+            }
             _ => {}
         }
     }
@@ -136,21 +149,61 @@ impl PacketCompareWidget {
     }
 }
 
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+use crate::app::widgets::packet_compare_widget::State::RunningPing;
+
 impl TuiWidget for PacketCompareWidget {
     fn process_input(&mut self, key_event: KeyEvent) -> () {
         if key_event.code == KeyCode::Char('q') && self.state != State::PermissionCheck {
             self.upper_state = Some(crate::app::State::Welcome);
-            self.state = State::Initial;
+            self.state = State::NoOp;
             self.reset_test_index();
             self.summary_widget.clear_results();
         } else {
+            let mut file = OpenOptions::new()
+                .write(true)
+                .append(true)
+                .open("ciao.txt")
+                .unwrap();
             match self.state {
-                State::Initial => {}
+                State::NoOp => {
+                    self.state = State::RunningPing;
+                    match key_event.code {
+                        KeyCode::Char(' ') => {
+                            match self.get_actual_test() {
+                                Some(test) => {
+                                    let arguments_vec = match test.as_array() {
+                                        Some(s) => s
+                                            .iter()
+                                            .filter_map(|val| val.as_str().map(|s| s.to_string()))
+                                            .collect(),
+                                        None => Vec::new(),
+                                    };
+
+                                    if let Err(e) = writeln!(file, "Starting...") {
+                                        eprintln!("Couldn't write to file: {}", e);
+                                    }
+                                    self.summary_widget().add_test(arguments_vec.join(" "));
+                                    self.message_widget().set_arguments(arguments_vec.join(" "));
+                                    self.interceptor.thread_mut().start(vec!["2".to_string()]);
+                                    self.thread_mng_mut(PingType::Ping).start_process(arguments_vec);
+                                    self.message_widget().set_running(true);
+                                    self.state = RunningPing;
+                                }
+                                None => {
+                                    self.set_finished();
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
                 State::PermissionCheck => {
                     match key_event.code {
                         KeyCode::Esc => {
                             self.upper_state = Some(crate::app::State::Welcome);
-                            self.state = State::Initial;
+                            self.state = RunningPing;
                             self.reset_test_index();
                             self.summary_widget.clear_results();
                         }
@@ -158,7 +211,7 @@ impl TuiWidget for PacketCompareWidget {
                             self.password_dialog.process_input(key_event);
                             match self.password_dialog.authentication_state() {
                                 AuthenticationState::Success => {
-                                    self.state = State::Initial;
+                                    self.state = RunningPing;
                                     self.message_widget.set_running(true);
                                     self.to_run = true;
                                 },
@@ -178,7 +231,7 @@ impl TuiWidget for PacketCompareWidget {
 
     fn draw(&mut self, frame: &mut Frame) -> Result<()> {
 
-        self.handle_running();
+        self.handle_state();
 
         let (commands_area, area) = Self::commands_area(&frame);
         let [upper_area, status_area] =
@@ -194,10 +247,23 @@ impl TuiWidget for PacketCompareWidget {
         frame.render_widget(Clear, commands_area);
         frame.render_widget(&self.commands_widget, commands_area);
 
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open("ciao.txt")
+            .unwrap();
         match &self.state {
             State::PermissionCheck => self.password_dialog.draw(frame)?,
+            State::RunningPing => {
+                // if let Err(e) = writeln!(file, "quidentro") {
+                //     eprintln!("Couldn't write to file: {}", e);
+                // }
+            }
             _ => {}
         }
+        // if let Err(e) = writeln!(file, "qui fuori") {
+        //     eprintln!("Couldn't write to file: {}", e);
+        // }
 
         Ok(())
     }

@@ -19,13 +19,13 @@ pub struct Thread {
 }
 
 impl Thread {
-    pub fn new(path: String, name: String) -> Self {
+    pub fn new(path: &str, name: &str) -> Self {
         let (tx, rx) = mpsc::channel();
         let (error_tx, error_rx) = mpsc::channel();
         Self {
             command: Arc::new(Mutex::new(SubProcess::new(
-                path.clone(),
-                name.clone(),
+                path.to_string(),
+                name.to_string(),
                 tx,
                 error_tx,
             ))),
@@ -33,7 +33,7 @@ impl Thread {
             error_rx,
             output: RefCell::new(Vec::default()),
             error_output: RefCell::new(Vec::default()),
-            name,
+            name: name.to_string(),
             handle: None,
         }
     }
