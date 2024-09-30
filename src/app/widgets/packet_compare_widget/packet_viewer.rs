@@ -1,8 +1,5 @@
-use crate::app::widgets::packet_compare_widget::packet_viewer::LineEnum::{
-    FirstLineData, FirstLineLabel, SecondLineData, SecondLineLabel, ThirdLineData, ThirdLineLabel,
-};
 use crate::app::widgets::packet_compare_widget::packet_viewer::PacketField::*;
-use crate::app::widgets::traits::thread_stringpuller::{PingType};
+use crate::app::widgets::traits::thread_stringpuller::PingType;
 use ratatui::layout::Layout;
 use ratatui::style::Modifier;
 use ratatui::text::{Line, Span};
@@ -13,7 +10,7 @@ use ratatui::{
     style::{Color, Style},
     widgets::{block::Title, Block, BorderType, Widget},
 };
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use crate::app::utils::enums::TextType;
 use crate::app::widgets::traits::viewer::Viewer;
 use serde_json;
@@ -125,28 +122,28 @@ impl PacketViewer {
     fn generate_line(&self, rects: Vec<Rect>, l: LineEnum) -> () {
         let mut layout = self.layout.borrow_mut();
         match l {
-            FirstLineLabel => {
+            LineEnum::FirstLineLabel => {
                 layout.type_label = rects[0];
                 layout.code_label = rects[1];
                 layout.checksum_label = rects[2];
             }
-            FirstLineData => {
+            LineEnum::FirstLineData => {
                 layout.type_data = rects[0];
                 layout.code_data = rects[1];
                 layout.checksum_data = rects[2];
             }
-            SecondLineLabel => {
+            LineEnum::SecondLineLabel => {
                 layout.id_label = rects[0];
                 layout.sequence_label = rects[1];
             }
-            SecondLineData => {
+            LineEnum::SecondLineData => {
                 layout.id_data = rects[0];
                 layout.sequence_data = rects[1];
             }
-            ThirdLineLabel => {
+            LineEnum::ThirdLineLabel => {
                 layout.payload_label = rects[0];
             }
-            ThirdLineData => {
+            LineEnum::ThirdLineData => {
                 layout.payload_data = rects[0];
             }
         }
@@ -177,31 +174,31 @@ impl PacketViewer {
         ];
         self.generate_line(
             Vec::from(Layout::horizontal(constraints).areas::<3>(rows[0])),
-            FirstLineLabel,
+            LineEnum::FirstLineLabel,
         );
         self.generate_line(
             Vec::from(Layout::horizontal(constraints).areas::<3>(rows[1])),
-            FirstLineData,
+            LineEnum::FirstLineData,
         );
 
         let constraints = [Constraint::Percentage(50), Constraint::Percentage(50)];
         self.generate_line(
             Vec::from(Layout::horizontal(constraints).areas::<2>(rows[2])),
-            SecondLineLabel,
+            LineEnum::SecondLineLabel,
         );
         self.generate_line(
             Vec::from(Layout::horizontal(constraints).areas::<2>(rows[3])),
-            SecondLineData,
+            LineEnum::SecondLineData,
         );
 
         let constraints = [Constraint::Percentage(100)];
         self.generate_line(
             Vec::from(Layout::horizontal(constraints).areas::<1>(rows[4])),
-            ThirdLineLabel,
+            LineEnum::ThirdLineLabel,
         );
         self.generate_line(
             Vec::from(Layout::horizontal(constraints).areas::<1>(rows[5])),
-            ThirdLineData,
+            LineEnum::ThirdLineData,
         );
     }
 
