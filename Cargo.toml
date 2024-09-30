@@ -27,7 +27,6 @@ ft_ping_tester_deps = [
     "serde",
     "serde_derive",
     "toml",
-
 ]
 interceptor_deps = ["pnet", "pnet_packet", "byteorder"]
 pnet_packet = ["dep:pnet_packet"]

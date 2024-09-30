@@ -63,7 +63,7 @@ fn main() -> () {
     }
 
     for mut r in receivers {
-        println!("interface: {}", r.0.name);
+        // println!("interface: {}", r.0.name);
         let mut tries = 0;
         loop {
             match r.1.next() {
@@ -72,18 +72,18 @@ fn main() -> () {
                         if let Some(ipv4_packet) = ipv4::Ipv4Packet::new(eth_packet.payload()) {
                             if ipv4_packet.get_next_level_protocol() == pnet_packet::ip::IpNextHeaderProtocols::Icmp {
                                 if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
-                                    print!("{}", craft_json(icmp_packet));
+                                    println!("{}", craft_json(icmp_packet));
                                 } else {
-                                    println!("Cannot create ICMP packet");
+                                    // println!("Cannot create ICMP packet");
                                 }
                             } else {
-                                println!("Not an ICMP packet");
+                                // println!("Not an ICMP packet");
                             }
                         } else {
-                            println!("Not an IPv4 packet");
+                            // println!("Not an IPv4 packet");
                         }
                     } else {
-                        println!("Cannot extract ethernet frame");
+                        // println!("Cannot extract ethernet frame");
                     }
                 }
                 Err(e) => {

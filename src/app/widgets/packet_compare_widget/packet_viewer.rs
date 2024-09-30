@@ -1,9 +1,7 @@
 use crate::app::widgets::packet_compare_widget::packet_viewer::LineEnum::{
     FirstLineData, FirstLineLabel, SecondLineData, SecondLineLabel, ThirdLineData, ThirdLineLabel,
 };
-use crate::app::widgets::packet_compare_widget::packet_viewer::PacketField::{
-    ChecksumData, ChecksumLabel, CodeLabel, IdLabel, PayloadLabel, SequenceLabel, TypeLabel,
-};
+use crate::app::widgets::packet_compare_widget::packet_viewer::PacketField::*;
 use crate::app::widgets::traits::thread_stringpuller::{PingType};
 use ratatui::layout::Layout;
 use ratatui::style::Modifier;
@@ -18,6 +16,17 @@ use ratatui::{
 use std::cell::{RefCell};
 use crate::app::utils::enums::TextType;
 use crate::app::widgets::traits::viewer::Viewer;
+use serde_json;
+
+#[derive (Debug, Default, Clone)]
+struct Packet {
+    p_type: String,
+    code: String,
+    checksum: String,
+    id: String,
+    sequence: String,
+    data: Vec<u8>
+}
 
 enum LineEnum {
     FirstLineLabel,
@@ -63,6 +72,7 @@ struct GridLayout {
 pub struct PacketViewer {
     name: String,
     layout: RefCell<GridLayout>,
+    packet: Option<Packet>,
 }
 
 impl Viewer for PacketViewer {
@@ -75,6 +85,10 @@ impl Viewer for PacketViewer {
     }
 }
 
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+use serde_json::Value;
+
 impl PacketViewer {
     pub fn new(t: PingType) -> Self {
         Self {
@@ -83,6 +97,28 @@ impl PacketViewer {
                 PingType::Ping => String::from("ping packet"),
             },
             ..Default::default()
+        }
+    }
+
+    pub fn add_packet(&mut self, s: String) -> () {
+        let mut file = OpenOptions::new()
+                    .write(true)
+                    .append(true)
+                    .open("ciao.txt")
+                    .unwrap();
+        if let Err(e) = writeln!(file, "string is {}", s) {
+            eprintln!("Couldn't write to file: {}", e);
+        }
+        if let Ok(p) = serde_json::from_str::<Value>(&s) {
+            self.packet = Some(Packet {
+                p_type: p.get("type").unwrap().to_string(),
+                code: p.get("code").unwrap().to_string(),
+                checksum: p.get("checksum").unwrap().to_string(),
+                id: p.get("id").unwrap().to_string(),
+                sequence: p.get("sequence").unwrap().to_string(),
+                data: vec![0],
+                // data: p.get("data").unwrap().as_bytes().to_owned(),
+            });
         }
     }
 
@@ -170,6 +206,10 @@ impl PacketViewer {
     }
 
     fn draw_paragraph(&self, f: PacketField, cell_block: Block, buf: &mut Buffer) -> () {
+        let binding = match self.packet.clone() {
+            Some(p) => p,
+            None => Packet::default()
+        };
         let (text, area) = match f {
             TypeLabel => ("type", self.layout.borrow().type_label),
             CodeLabel => ("code", self.layout.borrow().code_label),
@@ -177,7 +217,12 @@ impl PacketViewer {
             IdLabel => ("id", self.layout.borrow().id_label),
             SequenceLabel => ("sequence", self.layout.borrow().sequence_label),
             PayloadLabel => ("payload", self.layout.borrow().payload_label),
-            _ => ("", Rect::default()),
+            TypeData => (binding.p_type.as_str(), self.layout.borrow().type_data),
+            CodeData => (binding.code.as_str(), self.layout.borrow().code_data),
+            ChecksumData => (binding.checksum.as_str(), self.layout.borrow().checksum_data),
+            IdData => (binding.id.as_str(), self.layout.borrow().id_data),
+            SequenceData => (binding.sequence.as_str(), self.layout.borrow().sequence_data),
+            PayloadData => ("tmp", self.layout.borrow().payload_data),
         };
         Paragraph::new(Line::from(Span::styled(
             text,
@@ -210,5 +255,13 @@ impl Widget for &PacketViewer {
         self.draw_paragraph(IdLabel, cell_block.clone(), buf);
         self.draw_paragraph(SequenceLabel, cell_block.clone(), buf);
         self.draw_paragraph(PayloadLabel, cell_block.clone(), buf);
+        if let Some(_) = self.packet {
+            self.draw_paragraph(TypeData, cell_block.clone(), buf);
+            self.draw_paragraph(CodeData, cell_block.clone(), buf);
+            self.draw_paragraph(ChecksumData, cell_block.clone(), buf);
+            self.draw_paragraph(IdData, cell_block.clone(), buf);
+            self.draw_paragraph(SequenceData, cell_block.clone(), buf);
+            self.draw_paragraph(PayloadData, cell_block.clone(), buf);
+        }
     }
 }

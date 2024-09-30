@@ -55,11 +55,11 @@ pub struct PacketCompareWidget {
     password_dialog: InputDialog,
     ft_ping_thread_mng: ThreadManager,
     ping_thread_mng: ThreadManager,
+    interceptor: ThreadManager,
     ft_ping_viewer: PacketViewer,
     ping_viewer: PacketViewer,
     commands_widget: CommandsWidget,
     to_run: bool,
-    interceptor: ThreadManager,
 }
 
 impl PacketCompareWidget {
@@ -129,6 +129,7 @@ impl PacketCompareWidget {
                     //     eprintln!("Couldn't write to file: {}", e);
                     // }
                     for i in self.interceptor.take_output(OutputType::Stdout) {
+                        self.ping_viewer.add_packet(i.clone());
                         if let Err(e) = writeln!(file, "interceptor text: {}", i) {
                             eprintln!("Couldn't write to file: {}", e);
                         }
@@ -215,7 +216,6 @@ impl TuiWidget for PacketCompareWidget {
                                     self.message_widget.set_running(true);
                                     self.to_run = true;
                                 },
-                                AuthenticationState::Editing => {},
                                 _ => {}
                             }
                         }
@@ -247,11 +247,11 @@ impl TuiWidget for PacketCompareWidget {
         frame.render_widget(Clear, commands_area);
         frame.render_widget(&self.commands_widget, commands_area);
 
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open("ciao.txt")
-            .unwrap();
+        // let mut file = OpenOptions::new()
+        //     .write(true)
+        //     .append(true)
+        //     .open("ciao.txt")
+        //     .unwrap();
         match &self.state {
             State::PermissionCheck => self.password_dialog.draw(frame)?,
             State::RunningPing => {
