@@ -13,7 +13,7 @@ use crate::app::widgets::traits::viewer::Viewer;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::Frame;
 use serde_json::Value;
-use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
+use crate::app::widgets::traits::runner::Runner;
 use super::common::thread_manager::ThreadManager;
 use super::common::processing_widget::ProcessingWidget;
 use super::traits::thread_stringpuller::PingType;

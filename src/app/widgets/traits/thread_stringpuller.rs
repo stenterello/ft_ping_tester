@@ -1,4 +1,4 @@
-use super::thread_launcher::ThreadLauncher;
+use super::runner::Runner;
 use super::tui_widget::TuiWidget;
 use super::viewer::Viewer;
 use crate::app::utils::enums::{TestResult, TextType};

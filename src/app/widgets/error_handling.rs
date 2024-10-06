@@ -16,7 +16,7 @@ use ratatui::{
 use serde_json::Value;
 use std::io::Result;
 use crate::app::widgets::common::thread_manager::ThreadManager;
-use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
+use crate::app::widgets::traits::runner::Runner;
 use super::common::processing_widget::ProcessingWidget;
 use super::traits::thread_stringpuller::PingType;
 use super::traits::viewer::Viewer;

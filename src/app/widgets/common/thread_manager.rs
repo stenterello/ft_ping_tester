@@ -1,5 +1,5 @@
 use crate::app::utils::thread::Thread;
-use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
+use crate::app::widgets::traits::runner::Runner;
 
 #[derive (Debug)]
 pub struct ThreadManager {
@@ -14,7 +14,7 @@ impl ThreadManager {
     }
 }
 
-impl ThreadLauncher for ThreadManager {
+impl Runner for ThreadManager {
     fn is_running(&self) -> bool {
         self.thread.is_running()
     }

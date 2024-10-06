@@ -22,7 +22,7 @@ use crate::app::widgets::common::processing_widget::ProcessingWidget;
 use crate::app::widgets::common::thread_manager::ThreadManager;
 use crate::app::widgets::packet_compare_widget::input_dialog::AuthenticationState;
 use crate::app::widgets::traits::comparer::Comparer;
-use crate::app::widgets::traits::thread_launcher::ThreadLauncher;
+use crate::app::widgets::traits::runner::Runner;
 use crate::app::widgets::traits::thread_stringpuller::ThreadStringPuller;
 use crate::app::widgets::traits::viewer::{OutputType, Viewer};
 

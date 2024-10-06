@@ -1,7 +1,7 @@
 use crate::app::utils::thread::Thread;
 use crate::app::widgets::traits::viewer::OutputType;
 
-pub trait ThreadLauncher {
+pub trait Runner {
     fn is_running(&self) -> bool;
     fn get_exit_status(&mut self) -> (Option<i32>, Option<String>) {
         self.thread_mut().get_exit()
