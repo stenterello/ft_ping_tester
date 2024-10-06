@@ -118,7 +118,7 @@ impl StatefulWidget for &ListWidget {
                         .add_modifier(Modifier::ITALIC)
                         .add_modifier(Modifier::BOLD),
                 )
-                .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
+                .style(Style::default().bg(Color::Rgb(40, 44, 52)).fg(Color::White))
                 .block(block),
             correct_area,
             buf,

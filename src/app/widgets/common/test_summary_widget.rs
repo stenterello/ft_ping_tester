@@ -100,7 +100,7 @@ impl Widget for &TestSummaryWidget {
             .block(block)
             .wrap(Wrap { trim: true })
             .scroll((self.vertical_scroll as u16, 0))
-            .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
+            .style(Style::default().bg(Color::Rgb(40, 44, 52)).fg(Color::White))
             .render(area, buf);
 
         let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)

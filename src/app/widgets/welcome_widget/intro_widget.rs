@@ -44,7 +44,7 @@ impl Widget for &IntroWidget {
         Paragraph::new(description)
             .block(block)
             .wrap(Wrap { trim: true })
-            .style(Style::default().bg(Color::Rgb(46, 52, 64)).fg(Color::White))
+            .style(Style::default().bg(Color::Rgb(40, 44, 52)).fg(Color::White))
             .render(area.clone(), buf);
     }
 }
