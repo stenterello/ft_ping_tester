@@ -187,13 +187,6 @@ impl ThreadStringPuller for ErrorHandling {
         }
     }
 
-    fn viewer(&self, v: PingType) -> &impl Viewer {
-        match v {
-            PingType::FtPing => &self.ft_ping_output_viewer,
-            PingType::Ping => &self.ping_output_viewer,
-        }
-    }
-
     fn running(&self) -> bool {
         self.ft_ping_thread_mng.is_running() || self.ping_thread_mng.is_running()
     }

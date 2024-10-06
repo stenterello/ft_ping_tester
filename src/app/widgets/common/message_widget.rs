@@ -1,11 +1,11 @@
 use crate::app::widgets::traits::thread_stringpuller::ExitResult;
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Constraint, Rect},
-    style::{Color, Style, Stylize},
+    layout::{Constraint, Rect},
+    style::{Style, Stylize},
     text::Span,
     widgets::{
-        block::{Block, BorderType, Title},
+        block::Title,
         Row, Table, Widget,
     },
 };

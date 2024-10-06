@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::process::{exit, Command, Stdio};
+use std::process::{Command, Stdio};
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Layout};

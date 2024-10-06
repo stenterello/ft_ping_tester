@@ -1,10 +1,10 @@
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Margin, Rect},
-    style::{Color, Style, Stylize},
+    layout::{Margin, Rect},
+    style::Stylize,
     widgets::{
-        block::{BorderType, Title},
-        Block, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget,
+        block::Title,
+        Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget,
         Wrap,
     },
 };

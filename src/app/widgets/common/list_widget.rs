@@ -6,8 +6,8 @@ use ratatui::{
     layout::{Alignment, Rect},
     style::{Color, Modifier, Style, Stylize},
     widgets::{
-        block::{BorderType, Title},
-        Block, List, ListState, StatefulWidget,
+        block::Title,
+        List, ListState, StatefulWidget,
     },
 };
 

@@ -35,7 +35,6 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
     fn processing_widget(&mut self) -> &mut ProcessingWidget;
     fn thread_mng_mut(&mut self, v: PingType) -> &mut ThreadManager;
     fn thread_mng(&self, v: PingType) -> &ThreadManager;
-    fn viewer(&self, v: PingType) -> &impl Viewer;
     fn viewer_mut(&mut self, v: PingType) -> &mut impl Viewer;
     fn running(&self) -> bool;
     fn to_run(&self) -> bool;

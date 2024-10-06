@@ -17,7 +17,4 @@ pub trait ThreadLauncher {
     fn get_output(&self, t: OutputType) -> Vec<String> {
         self.thread().get_output(t)
     }
-    fn clear_buffers(&mut self) -> () {
-        self.thread_mut().clear_buffers()
-    }
 }

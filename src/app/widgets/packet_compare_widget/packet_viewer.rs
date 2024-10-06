@@ -22,7 +22,7 @@ struct Packet {
     checksum: String,
     id: String,
     sequence: String,
-    data: Vec<u8>
+    _data: Vec<u8>
 }
 
 enum LineEnum {
@@ -73,11 +73,11 @@ pub struct PacketViewer {
 }
 
 impl Viewer for PacketViewer {
-    fn set_text_to_display(&mut self, t: TextType) -> () {
+    fn set_text_to_display(&mut self, _t: TextType) -> () {
         todo!()
     }
 
-    fn set_error_to_display(&mut self, t: TextType) -> () {
+    fn set_error_to_display(&mut self, _t: TextType) -> () {
         todo!()
     }
 }
@@ -113,7 +113,7 @@ impl PacketViewer {
                 checksum: p.get("checksum").unwrap().to_string(),
                 id: p.get("id").unwrap().to_string(),
                 sequence: p.get("sequence").unwrap().to_string(),
-                data: vec![0],
+                _data: vec![0],
                 // data: p.get("data").unwrap().as_bytes().to_owned(),
             });
         }

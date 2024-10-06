@@ -1,13 +1,13 @@
 use crate::app::utils::enums::TextType;
-use crate::app::widgets::traits::viewer::{Viewer};
+use crate::app::widgets::traits::viewer::Viewer;
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Rect},
+    layout::Rect,
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
     widgets::{
-        block::{BorderType, Title},
-        Block, Paragraph, Widget, Wrap,
+        block::Title,
+        Paragraph, Widget, Wrap,
     },
 };
 

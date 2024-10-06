@@ -1,17 +1,16 @@
 use crate::app::utils::enums::TestResult;
 use crate::app::widgets::traits::tui_widget::TuiWidget;
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
-use ratatui::layout::{Alignment, Margin};
-use ratatui::prelude::{Color, Style, Stylize};
+use ratatui::prelude::Stylize;
 use ratatui::text::{Line, Text};
-use ratatui::widgets::block::Title;
 use ratatui::widgets::{
-    Block, BorderType, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, Wrap,
+    block::Title,
+    Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, Wrap,
+    StatefulWidget, Widget
 };
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
-    widgets::{StatefulWidget, Widget},
+    layout::{Rect, Margin}
 };
 use std::cell::RefCell;
 

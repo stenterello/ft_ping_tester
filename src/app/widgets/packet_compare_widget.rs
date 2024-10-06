@@ -13,7 +13,7 @@ use ratatui::widgets::Clear;
 use ratatui::prelude::Constraint;
 use crate::app::widgets::common::commands_widget::CommandsWidget;
 use serde_json::Value;
-use std::io::{Result};
+use std::io::Result;
 use std::process::{Command, Stdio};
 use sudo::RunningAs;
 use crate::app::utils::config::config_extractor::Locations;
@@ -38,7 +38,7 @@ enum State {
     RunningFtPing,
     #[default]
     PermissionCheck,
-    WaitingProcess,
+    _WaitingProcess,
     PresentingResults,
     Summary,
 }
@@ -323,13 +323,6 @@ impl ThreadStringPuller for PacketCompareWidget {
         match v {
             PingType::FtPing => &self.ft_ping_thread_mng,
             PingType::Ping => &self.ping_thread_mng
-        }
-    }
-
-    fn viewer(&self, v: PingType) -> &impl Viewer {
-        match v {
-            PingType::FtPing => &self.ft_ping_viewer,
-            PingType::Ping => &self.ping_viewer
         }
     }
 
