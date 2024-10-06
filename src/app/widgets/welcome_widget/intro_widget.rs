@@ -1,13 +1,15 @@
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Rect},
-    style::{Color, Style, Stylize},
+    layout::Rect,
+    style::Stylize,
     text::{Line, Text},
     widgets::{
-        block::{Block, BorderType, Title},
+        block::Title,
         Paragraph, Widget, Wrap,
     },
 };
+
+use crate::app::widgets::common::default_style::DefaultStyle;
 
 #[derive(Debug, Default)]
 pub struct IntroWidget;
@@ -36,15 +38,10 @@ impl Widget for &IntroWidget {
             Line::from(" Choose below the option to run all the tester consequencially or run only a specific part."),
         ]);
 
-        let block = Block::bordered()
-            .title(title.alignment(Alignment::Center))
-            .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded);
-
         Paragraph::new(description)
-            .block(block)
+            .block(DefaultStyle::block(title))
+            .style(DefaultStyle::style())
             .wrap(Wrap { trim: true })
-            .style(Style::default().bg(Color::Rgb(40, 44, 52)).fg(Color::White))
             .render(area.clone(), buf);
     }
 }

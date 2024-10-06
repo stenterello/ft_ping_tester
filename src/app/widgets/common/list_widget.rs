@@ -11,6 +11,8 @@ use ratatui::{
     },
 };
 
+use super::default_style::DefaultStyle;
+
 #[derive(Debug, Default, Clone)]
 pub enum ListAlignment {
     #[default]
@@ -79,11 +81,7 @@ impl StatefulWidget for &ListWidget {
     type State = ListState;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
-        let title = Title::from(self.title.clone().bold());
-        let block = Block::bordered()
-            .title(title.alignment(Alignment::Center))
-            .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded);
+        let block = DefaultStyle::block(Title::from(self.title.clone().bold()));
 
         let correct_area: Rect = match self.alignment {
             ListAlignment::Standard => area,
@@ -118,7 +116,7 @@ impl StatefulWidget for &ListWidget {
                         .add_modifier(Modifier::ITALIC)
                         .add_modifier(Modifier::BOLD),
                 )
-                .style(Style::default().bg(Color::Rgb(40, 44, 52)).fg(Color::White))
+                .style(DefaultStyle::style())
                 .block(block),
             correct_area,
             buf,

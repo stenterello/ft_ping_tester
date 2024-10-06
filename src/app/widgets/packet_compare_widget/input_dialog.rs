@@ -14,8 +14,8 @@ use crate::app::widgets::traits::tui_widget::TuiWidget;
 pub enum AuthenticationState {
     #[default]
     Editing,
-    Trying,
-    Error,
+    _Trying,
+    _Error,
     Success,
 }
 
@@ -28,7 +28,6 @@ pub struct InputDialog {
 }
 
 use std::fs::OpenOptions;
-use std::io::prelude::*;
 
 impl InputDialog {
     pub fn new(title: &str) -> Self {

@@ -15,6 +15,8 @@ use ratatui::{
 };
 use std::cell::RefCell;
 
+use super::default_style::DefaultStyle;
+
 #[derive(Debug, Default)]
 pub struct TestSummaryWidget {
     test_results: Vec<(String, TestResult)>,
@@ -78,11 +80,7 @@ impl TuiWidget for TestSummaryWidget {
 
 impl Widget for &TestSummaryWidget {
     fn render(self, area: Rect, buf: &mut Buffer) -> () {
-        let title = Title::from(" Test Summary ".bold().yellow());
-        let block = Block::bordered()
-            .title(title.alignment(Alignment::Center))
-            .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded);
+        let block = DefaultStyle::block(Title::from(" Test Summary ".bold().yellow()));
 
         let mut line_vec: Vec<Line> = Vec::default();
         for test in &self.test_results {
@@ -100,7 +98,7 @@ impl Widget for &TestSummaryWidget {
             .block(block)
             .wrap(Wrap { trim: true })
             .scroll((self.vertical_scroll as u16, 0))
-            .style(Style::default().bg(Color::Rgb(40, 44, 52)).fg(Color::White))
+            .style(DefaultStyle::style())
             .render(area, buf);
 
         let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)

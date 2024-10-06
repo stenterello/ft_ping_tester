@@ -157,15 +157,9 @@ impl PacketViewer {
             height: area.height - 2,
         };
 
-        let rows = Layout::vertical([
-            Constraint::Percentage(16),
-            Constraint::Percentage(16),
-            Constraint::Percentage(16),
-            Constraint::Percentage(16),
-            Constraint::Percentage(16),
-            Constraint::Percentage(16),
-        ])
-        .areas::<6>(area);
+        let rows = Layout::vertical(
+            [Constraint::Percentage(16); 6]
+        ).areas::<6>(area);
 
         let constraints = [
             Constraint::Percentage(25),

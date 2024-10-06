@@ -10,6 +10,8 @@ use ratatui::{
     },
 };
 
+use super::default_style::DefaultStyle;
+
 #[derive(Debug, Default)]
 pub struct MessageWidget {
     running_test: bool,
@@ -66,11 +68,7 @@ impl MessageWidget {
 
 impl Widget for &MessageWidget {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Title::from(" Status ".bold().yellow());
-        let block = Block::bordered()
-            .title(title.alignment(Alignment::Left))
-            .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded);
+        let block = DefaultStyle::block(Title::from(" Status ".bold().yellow()));
 
         Table::new(
             [

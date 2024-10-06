@@ -10,7 +10,7 @@ use ratatui::{
 };
 use std::cell::RefCell;
 
-use crate::app::{utils::thread::Thread, widgets::traits::viewer::OutputType};
+use crate::app::{utils::thread::Thread, widgets::{common::default_style::DefaultStyle, traits::viewer::OutputType}};
 
 #[derive(Debug)]
 pub struct RecompilingNotice {
@@ -60,21 +60,13 @@ impl RecompilingNotice {
 
 impl Widget for &RecompilingNotice {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let recompiling_title = Title::from(" Recompiling... ".bold().yellow());
-        let done_title = Title::from(" Done! ".bold().green());
-        let error_title = Title::from(" Error! ".bold().red());
-        let mut block = Block::bordered()
-            .style(Style::default().fg(Color::Yellow))
-            .title_alignment(Alignment::Center)
-            .border_type(BorderType::Rounded);
-
-        if self.thread.is_running() {
-            block = block.title(recompiling_title);
+        let block = if let true = self.thread.is_running() {
+            DefaultStyle::block(Title::from(" Recompiling... ".bold().yellow()))
         } else if self.thread.get_exit().0 == Some(0) {
-            block = block.title(done_title);
+            DefaultStyle::block(Title::from(" Done! ".bold().green()))
         } else {
-            block = block.title(error_title);
-        }
+            DefaultStyle::block(Title::from(" Error! ".bold().red()))
+        };
 
         let mut text = self.thread.get_output(OutputType::Stdout).join("\n");
         text.push_str(
@@ -90,7 +82,7 @@ impl Widget for &RecompilingNotice {
             .block(block.clone())
             .wrap(Wrap { trim: true })
             .scroll((self.vertical_scroll as u16, 0))
-            .style(Style::default().fg(Color::White))
+            .style(DefaultStyle::style())
             .render(area, buf);
 
         let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)

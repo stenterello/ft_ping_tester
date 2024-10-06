@@ -11,6 +11,8 @@ use ratatui::{
     },
 };
 
+use super::default_style::DefaultStyle;
+
 #[derive(Debug)]
 pub struct OutputViewer {
     name: String,
@@ -88,11 +90,7 @@ impl Widget for &OutputViewer {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut t: String = String::from(" ");
         t.push_str((String::from(self.name.clone()) + " ").as_str());
-        let title = Title::from(t.as_str().bold().yellow());
-        let block = Block::bordered()
-            .title(title.alignment(Alignment::Center))
-            .style(Style::default().fg(Color::Yellow))
-            .border_type(BorderType::Rounded);
+        let block = DefaultStyle::block(Title::from(t.as_str().bold().yellow()));
 
         let mut text: Text = Text::default();
 
@@ -167,8 +165,8 @@ impl Widget for &OutputViewer {
         }
         Paragraph::new(text)
             .block(block)
+            .style(DefaultStyle::style())
             .wrap(Wrap { trim: true })
-            .style(Style::default().bg(Color::Rgb(40, 44, 52)).fg(Color::White))
             .render(area, buf);
     }
 }
