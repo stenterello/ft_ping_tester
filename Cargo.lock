@@ -122,15 +122,11 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 name = "ft_ping_tester"
 version = "0.1.0"
 dependencies = [
- "byteorder",
  "itertools",
- "pnet",
- "pnet_packet",
  "ratatui",
  "serde",
  "serde_derive",
  "serde_json",
- "signal-hook",
  "sudo",
  "toml",
 ]
@@ -251,6 +247,17 @@ name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
+
+[[package]]
+name = "packets_interceptor"
+version = "0.1.0"
+dependencies = [
+ "byteorder",
+ "pnet",
+ "pnet_packet",
+ "serde_json",
+ "sudo",
+]
 
 [[package]]
 name = "parking_lot"
