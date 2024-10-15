@@ -112,7 +112,7 @@ pub trait ThreadStringPuller: Comparer + TuiWidget {
 
     fn batch_mode(&mut self) -> Result<()> {
         let tests_len = self.tests().as_array().unwrap().len();
-        let ratio = tests_len as f64 / 100f64 * (self.tests_idx() + 1) as f64 / 10f64;
+        let ratio = (self.tests_idx() + 1) as f64 / tests_len as f64;
         self.processing_widget().set_ratio(ratio);
 
         if !self.running() && self.tests_idx() != tests_len - 1 {
