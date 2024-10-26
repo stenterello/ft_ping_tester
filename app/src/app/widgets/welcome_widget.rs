@@ -70,7 +70,7 @@ impl TuiWidget for WelcomeWidget {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> std::io::Result<()> {
-        if self.to_clear() {
+        if *self.to_clear() {
             frame.render_widget(Clear, frame.size());
             self.set_to_clear(false);
             return Ok(());
@@ -115,8 +115,8 @@ impl TuiWidget for WelcomeWidget {
         self.to_clear = v;
     }
 
-    fn to_clear(&self) -> bool {
-        self.to_clear
+    fn to_clear(&self) -> &bool {
+        &self.to_clear
     }
 
     fn state(&mut self) -> Option<crate::app::State> {

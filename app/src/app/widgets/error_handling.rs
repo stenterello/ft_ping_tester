@@ -140,8 +140,8 @@ impl TuiWidget for ErrorHandling {
         self.to_clear = v;
     }
 
-    fn to_clear(&self) -> bool {
-        self.to_clear
+    fn to_clear(&self) -> &bool {
+        &self.to_clear
     }
 
     fn state(&mut self) -> Option<crate::app::State> {

@@ -267,7 +267,7 @@ pub trait ThreadStringPullerWidget: ThreadStringPuller {
         self.viewer_mut(PingType::Ping)
             .set_error_to_display(TextType::Standard(ping_useful_error_text.to_owned()));
 
-        if self.to_clear() {
+        if *self.to_clear() {
             frame.render_widget(Clear, upper_left_area);
             frame.render_widget(Clear, upper_right_area);
             self.set_to_clear(false);

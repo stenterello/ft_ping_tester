@@ -247,23 +247,12 @@ impl TuiWidget for PacketCompareWidget {
         frame.render_widget(Clear, commands_area);
         frame.render_widget(&self.commands_widget, commands_area);
 
-        // let mut file = OpenOptions::new()
-        //     .write(true)
-        //     .append(true)
-        //     .open("ciao.txt")
-        //     .unwrap();
         match &self.state {
             State::PermissionCheck => self.password_dialog.draw(frame)?,
             State::RunningPing => {
-                // if let Err(e) = writeln!(file, "quidentro") {
-                //     eprintln!("Couldn't write to file: {}", e);
-                // }
             }
             _ => {}
         }
-        // if let Err(e) = writeln!(file, "qui fuori") {
-        //     eprintln!("Couldn't write to file: {}", e);
-        // }
 
         Ok(())
     }
@@ -272,8 +261,8 @@ impl TuiWidget for PacketCompareWidget {
         self.to_clear = v;
     }
 
-    fn to_clear(&self) -> bool {
-        self.to_clear
+    fn to_clear(&self) -> &bool {
+        &self.to_clear
     }
 
     fn state(&mut self) -> Option<crate::app::State> {
